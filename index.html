@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#12141b" />
+<title>재무위험관리사 합격 플래너</title>
+<style>
+:root {
+  --bg:#f5f6fa; --card:#ffffff; --card2:#f0f2f7; --text:#111521; --muted:#6e7483; --line:#e3e6ef;
+  --primary:#6d5dfc; --primary2:#9a8cff; --success:#18a058; --warning:#f59e0b; --danger:#ef4444;
+  --shadow:0 18px 44px rgba(22,26,36,.10); --radius:24px;
+}
+[data-theme="dark"] {
+  --bg:#0f1117; --card:#171a23; --card2:#202431; --text:#f4f6fb; --muted:#9ba3b5; --line:#2a3040;
+  --primary:#8b7cff; --primary2:#b2a7ff; --success:#4ade80; --warning:#fbbf24; --danger:#fb7185;
+  --shadow:0 18px 44px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Apple SD Gothic Neo",Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+body{min-height:100dvh}
+button,input,select,textarea{font-family:inherit;color:inherit}
+.app{width:100%;max-width:430px;margin:0 auto;min-height:100dvh;background:linear-gradient(180deg,rgba(109,93,252,.10),transparent 280px),var(--bg);padding:calc(14px + env(safe-area-inset-top)) 14px calc(94px + env(safe-area-inset-bottom));}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 2px 14px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .kicker{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+h1{font-size:23px;line-height:1.12;margin:0;font-weight:900;letter-spacing:-.045em}
+.iconBtn{border:1px solid var(--line);background:rgba(255,255,255,.04);width:42px;height:42px;border-radius:15px;display:grid;place-items:center;font-size:18px;box-shadow:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:12px 0}
+.card.soft{background:var(--card2);box-shadow:none}
+.hero{padding:18px;background:linear-gradient(135deg,rgba(109,93,252,.92),rgba(47,139,255,.82));color:white;border:0;overflow:hidden;position:relative}
+.hero:after{content:"";position:absolute;right:-42px;top:-42px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.13)}
+.heroTop{position:relative;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.heroTitle{font-size:13px;opacity:.82;font-weight:800}
+.dday{font-size:34px;font-weight:950;letter-spacing:-.055em;margin-top:2px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:800;white-space:nowrap}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;position:relative}
+.stat{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:10px}
+.stat b{display:block;font-size:18px;letter-spacing:-.03em}
+.stat span{display:block;margin-top:2px;font-size:11px;opacity:.8;font-weight:700}
+.progressWrap{display:flex;align-items:center;gap:14px}
+.ring{--p:0;width:82px;height:82px;border-radius:50%;background:conic-gradient(var(--primary) calc(var(--p)*1%),var(--card2) 0);display:grid;place-items:center;flex:0 0 auto}
+.ring:before{content:"";width:64px;height:64px;border-radius:50%;background:var(--card)}
+.ring span{position:absolute;font-weight:950;font-size:17px}
+.progressText{min-width:0;flex:1}
+.progressText .title{font-weight:900;font-size:17px;letter-spacing:-.03em}
+.progressText .sub{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.45}
+.bar{height:10px;background:var(--card2);border-radius:999px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));border-radius:999px;width:0%}
+.sectionTitle{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 8px}
+.sectionTitle h2{margin:0;font-size:17px;letter-spacing:-.035em}
+.sectionTitle span{font-size:12px;color:var(--muted);font-weight:800}
+.todayList{display:flex;flex-direction:column;gap:10px}
+.lectureCard{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:13px;display:flex;gap:12px;align-items:flex-start}
+.lectureCard.done{opacity:.48}
+.check{width:30px;height:30px;border-radius:10px;border:1px solid var(--line);background:var(--card2);display:grid;place-items:center;flex:0 0 auto;font-weight:950}
+.lectureCard.done .check{background:var(--success);color:#07100a;border-color:transparent}
+.lectureInfo{flex:1;min-width:0}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.pill{display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--card2);border-radius:999px;padding:4px 7px;font-size:10px;font-weight:900;color:var(--muted)}
+.lectureTitle{font-size:14px;font-weight:900;line-height:1.35;letter-spacing:-.02em}
+.lectureSub{font-size:11px;color:var(--muted);font-weight:750;margin-top:5px}
+.empty{text-align:center;color:var(--muted);padding:24px 10px;line-height:1.55;font-size:14px}
+.warning{display:flex;gap:10px;align-items:flex-start;border-radius:20px;padding:13px;background:var(--card2);border:1px solid var(--line);font-size:13px;line-height:1.45}
+.warning strong{display:block;margin-bottom:3px}
+.tabs{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(20,22,30,.76);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.09);padding:7px 10px calc(7px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;z-index:50}
+[data-theme="light"] .tabs{background:rgba(255,255,255,.86);border-top:1px solid var(--line)}
+.tabBtn{border:0;background:transparent;color:var(--muted);border-radius:16px;padding:8px 3px 6px;display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;font-size:10px;font-weight:900}
+.tabBtn .ico{font-size:18px;line-height:1}
+.tabBtn.active{background:rgba(109,93,252,.16);color:var(--primary)}
+.screen{display:none}
+.screen.active{display:block}
+.phaseList{display:grid;gap:8px}
+.phase{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:18px;padding:11px;background:var(--card)}
+.phase .dot{width:24px;height:24px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-size:12px;font-weight:900;color:var(--muted)}
+.phase.active{border-color:rgba(109,93,252,.55);background:rgba(109,93,252,.11)}
+.phase.active .dot{background:var(--primary);color:white}
+.phase.done .dot{background:var(--success);color:#07100a}
+.phase b{font-size:13px}
+.phase small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.segment{display:flex;background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:4px;gap:4px;margin:10px 0}
+.segment button{flex:1;border:0;border-radius:14px;background:transparent;padding:10px 6px;font-size:12px;font-weight:900;color:var(--muted)}
+.segment button.active{background:var(--card);color:var(--text);box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.planDay{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:14px;margin:10px 0}
+.planHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.planDate{font-size:14px;font-weight:950}
+.planCount{font-size:11px;color:var(--muted);font-weight:900}
+.dayOff{border-style:dashed;opacity:.70}
+.miniLecture{display:flex;gap:9px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.miniLecture:first-of-type{border-top:0}
+.miniTitle{font-size:13px;font-weight:850;line-height:1.35;flex:1}
+.miniMeta{font-size:10px;color:var(--muted);font-weight:800}
+.toolbar{display:flex;gap:8px;overflow:auto;padding:2px 0 8px;scrollbar-width:none}
+.toolbar::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 12px;font-size:12px;font-weight:900;color:var(--muted);white-space:nowrap}
+.chip.active{background:var(--primary);border-color:var(--primary);color:white}
+.search{width:100%;border:1px solid var(--line);background:var(--card);border-radius:18px;padding:13px 14px;font-size:14px;outline:none;margin:8px 0 12px}
+.accordion{border:1px solid var(--line);background:var(--card);border-radius:22px;overflow:hidden;margin:10px 0}
+.accHead{width:100%;border:0;background:transparent;padding:14px;display:flex;justify-content:space-between;align-items:center;text-align:left}
+.accHead b{font-size:14px}
+.accHead span{font-size:11px;color:var(--muted);font-weight:900}
+.accBody{display:none;padding:0 10px 10px}
+.accordion.open .accBody{display:block}
+.subjectBars{display:grid;gap:12px}
+.subjectRow{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:13px}
+.subjectTop{display:flex;justify-content:space-between;font-size:13px;font-weight:900}
+.graph{display:flex;align-items:end;gap:7px;height:92px;padding:8px 4px 0}
+.gbar{flex:1;border-radius:8px 8px 4px 4px;background:linear-gradient(180deg,var(--primary2),var(--primary));min-height:4px;position:relative}
+.gbar span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--muted);font-weight:800}
+.heatmap{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:10px}
+.cell{aspect-ratio:1/1;border-radius:5px;background:var(--card2);border:1px solid var(--line)}
+.cell.l1{background:rgba(109,93,252,.30)}.cell.l2{background:rgba(109,93,252,.55)}.cell.l3{background:rgba(109,93,252,.85)}
+.formRow{display:grid;gap:6px;margin:12px 0}
+label{font-size:12px;color:var(--muted);font-weight:900}
+input[type="date"],select,textarea{width:100%;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:12px;font-size:14px;outline:none}
+textarea{min-height:92px;resize:vertical}
+.btn{border:0;border-radius:16px;background:var(--primary);color:white;padding:12px 14px;font-weight:950;font-size:13px;width:100%}
+.btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.35)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#111827;color:#fff;padding:11px 14px;border-radius:999px;font-size:12px;font-weight:850;opacity:0;pointer-events:none;transition:.25s;z-index:99;box-shadow:0 12px 28px rgba(0,0,0,.28)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.smallLink{border:0;background:transparent;color:var(--primary);font-weight:900;font-size:12px;padding:0}
+@media (max-width:360px){.app{padding-left:10px;padding-right:10px}h1{font-size:21px}.dday{font-size:30px}.grid3{gap:6px}.stat{padding:8px}.stat b{font-size:16px}}
+@media (min-width:431px){body{background:#080a0f}.app{box-shadow:0 0 0 1px rgba(255,255,255,.08);}}
+</style>
+</head>
+<body data-theme="dark">
+<div class="app">
+  <div class="top">
+    <div class="brand"><div class="kicker">국내 FRM · 2과목 면제 모드</div><h1>재무위험관리사<br>합격 플래너</h1></div>
+    <button class="iconBtn" id="themeToggle" aria-label="테마 변경">🌙</button>
+  </div>
+
+  <main id="home" class="screen active"></main>
+  <main id="plan" class="screen"></main>
+  <main id="lectures" class="screen"></main>
+  <main id="stats" class="screen"></main>
+  <main id="settings" class="screen"></main>
+</div>
+<nav class="tabs" aria-label="하단 탭">
+  <button class="tabBtn active" data-tab="home"><span class="ico">🏠</span><span>홈</span></button>
+  <button class="tabBtn" data-tab="plan"><span class="ico">📅</span><span>계획</span></button>
+  <button class="tabBtn" data-tab="lectures"><span class="ico">✅</span><span>강의</span></button>
+  <button class="tabBtn" data-tab="stats"><span class="ico">📊</span><span>통계</span></button>
+  <button class="tabBtn" data-tab="settings"><span class="ico">⚙️</span><span>설정</span></button>
+</nav>
+<div class="toast" id="toast"></div>
+<script>
+const LECTURES = [{"id": "basic-1", "course": "기본서", "originalNo": 1, "subject": 1, "title": "금융통계학 (1)", "fullTitle": "OT / [1과목/1권] 금융통계학 (1)", "teacher": "송현남", "minutes": 56}, {"id": "basic-2", "course": "기본서", "originalNo": 2, "subject": 1, "title": "금융통계학 (2)", "fullTitle": "[1과목/1권] 금융통계학 (2)", "teacher": "송현남", "minutes": 48}, {"id": "basic-3", "course": "기본서", "originalNo": 3, "subject": 1, "title": "금융통계학 (3)", "fullTitle": "[1과목/1권] 금융통계학 (3)", "teacher": "송현남", "minutes": 33}, {"id": "basic-4", "course": "기본서", "originalNo": 4, "subject": 1, "title": "금융통계학 (4)", "fullTitle": "[1과목/1권] 금융통계학 (4)", "teacher": "송현남", "minutes": 59}, {"id": "basic-5", "course": "기본서", "originalNo": 5, "subject": 1, "title": "금융통계학 (5)", "fullTitle": "[1과목/1권] 금융통계학 (5)", "teacher": "송현남", "minutes": 47}, {"id": "basic-6", "course": "기본서", "originalNo": 6, "subject": 1, "title": "금융통계학 (6)", "fullTitle": "[1과목/1권] 금융통계학 (6)", "teacher": "송현남", "minutes": 34}, {"id": "basic-7", "course": "기본서", "originalNo": 7, "subject": 1, "title": "채권분석 (1)", "fullTitle": "[1과목/1권] 채권분석 (1)", "teacher": "송현남", "minutes": 25}, {"id": "basic-8", "course": "기본서", "originalNo": 8, "subject": 1, "title": "채권분석 (2)", "fullTitle": "[1과목/1권] 채권분석 (2)", "teacher": "송현남", "minutes": 39}, {"id": "basic-9", "course": "기본서", "originalNo": 9, "subject": 1, "title": "채권분석 (3)", "fullTitle": "[1과목/1권] 채권분석 (3)", "teacher": "송현남", "minutes": 29}, {"id": "basic-10", "course": "기본서", "originalNo": 10, "subject": 1, "title": "채권분석 (4)", "fullTitle": "[1과목/1권] 채권분석 (4)", "teacher": "송현남", "minutes": 43}, {"id": "basic-11", "course": "기본서", "originalNo": 11, "subject": 1, "title": "채권분석 (5)", "fullTitle": "[1과목/1권] 채권분석 (5)", "teacher": "송현남", "minutes": 39}, {"id": "basic-12", "course": "기본서", "originalNo": 12, "subject": 1, "title": "외국환거래법 (1)", "fullTitle": "[1과목/1권] 외국환거래법 (1)", "teacher": "송현남", "minutes": 33}, {"id": "basic-13", "course": "기본서", "originalNo": 13, "subject": 1, "title": "외국환거래법 (2)", "fullTitle": "[1과목/1권] 외국환거래법 (2)", "teacher": "송현남", "minutes": 39}, {"id": "basic-14", "course": "기본서", "originalNo": 14, "subject": 1, "title": "외국환거래법 (3)", "fullTitle": "[1과목/1권] 외국환거래법 (3)", "teacher": "송현남", "minutes": 29}, {"id": "basic-15", "course": "기본서", "originalNo": 15, "subject": 1, "title": "외국환거래법 (4)", "fullTitle": "[1과목/1권] 외국환거래법 (4)", "teacher": "송현남", "minutes": 15}, {"id": "basic-16", "course": "기본서", "originalNo": 16, "subject": 1, "title": "자기자본 건전성 규제내용 (1)", "fullTitle": "[1과목/1권] 자기자본 건전성 규제내용 (1)", "teacher": "송현남", "minutes": 33}, {"id": "basic-17", "course": "기본서", "originalNo": 17, "subject": 1, "title": "자기자본 건전성 규제내용 (2)", "fullTitle": "[1과목/1권] 자기자본 건전성 규제내용 (2)", "teacher": "송현남", "minutes": 29}, {"id": "basic-18", "course": "기본서", "originalNo": 18, "subject": 1, "title": "내부통제 및 컴플라이언스 (1)", "fullTitle": "[1과목/1권] 내부통제 및 컴플라이언스 (1)", "teacher": "송현남", "minutes": 31}, {"id": "basic-19", "course": "기본서", "originalNo": 19, "subject": 1, "title": "내부통제 및 컴플라이언스 (2)", "fullTitle": "[1과목/1권] 내부통제 및 컴플라이언스 (2)", "teacher": "송현남", "minutes": 32}, {"id": "basic-20", "course": "기본서", "originalNo": 20, "subject": 1, "title": "장외파생상품회계 (1)", "fullTitle": "[1과목/1권] 장외파생상품회계 (1)", "teacher": "송현남", "minutes": 32}, {"id": "basic-21", "course": "기본서", "originalNo": 21, "subject": 1, "title": "장외파생상품회계 (2)", "fullTitle": "[1과목/1권] 장외파생상품회계 (2)", "teacher": "송현남", "minutes": 48}, {"id": "basic-22", "course": "기본서", "originalNo": 22, "subject": 1, "title": "장외파생상품회계 (3)", "fullTitle": "[1과목/1권] 장외파생상품회계 (3)", "teacher": "송현남", "minutes": 31}, {"id": "basic-23", "course": "기본서", "originalNo": 23, "subject": 1, "title": "장외파생상품회계 (4)", "fullTitle": "[1과목/1권] 장외파생상품회계 (4)", "teacher": "송현남", "minutes": 18}, {"id": "basic-24", "course": "기본서", "originalNo": 24, "subject": 1, "title": "장외파생상품회계 (5)", "fullTitle": "[1과목/1권] 장외파생상품회계 (5)", "teacher": "송현남", "minutes": 9}, {"id": "basic-38", "course": "기본서", "originalNo": 38, "subject": 3, "title": "스왑 (1)", "fullTitle": "[3과목/2권] 스왑 (1)", "teacher": "민영기", "minutes": 37}, {"id": "basic-39", "course": "기본서", "originalNo": 39, "subject": 3, "title": "스왑 (2)", "fullTitle": "[3과목/2권] 스왑 (2)", "teacher": "민영기", "minutes": 41}, {"id": "basic-40", "course": "기본서", "originalNo": 40, "subject": 3, "title": "스왑 (3)", "fullTitle": "[3과목/2권] 스왑 (3)", "teacher": "민영기", "minutes": 30}, {"id": "basic-41", "course": "기본서", "originalNo": 41, "subject": 3, "title": "스왑 (4)", "fullTitle": "[3과목/2권] 스왑 (4)", "teacher": "민영기", "minutes": 42}, {"id": "basic-42", "course": "기본서", "originalNo": 42, "subject": 3, "title": "장외옵션 (1)", "fullTitle": "[3과목/2권] 장외옵션 (1)", "teacher": "민영기", "minutes": 34}, {"id": "basic-43", "course": "기본서", "originalNo": 43, "subject": 3, "title": "장외옵션 (2)", "fullTitle": "[3과목/2권] 장외옵션 (2)", "teacher": "민영기", "minutes": 30}, {"id": "basic-44", "course": "기본서", "originalNo": 44, "subject": 3, "title": "장외옵션 (3)", "fullTitle": "[3과목/2권] 장외옵션 (3)", "teacher": "민영기", "minutes": 35}, {"id": "basic-45", "course": "기본서", "originalNo": 45, "subject": 3, "title": "장외옵션 (4)", "fullTitle": "[3과목/2권] 장외옵션 (4)", "teacher": "민영기", "minutes": 36}, {"id": "basic-46", "course": "기본서", "originalNo": 46, "subject": 4, "title": "시장 리스크 관리 (1)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (1)", "teacher": "송현남", "minutes": 24}, {"id": "basic-47", "course": "기본서", "originalNo": 47, "subject": 4, "title": "시장 리스크 관리 (2)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (2)", "teacher": "송현남", "minutes": 29}, {"id": "basic-48", "course": "기본서", "originalNo": 48, "subject": 4, "title": "시장 리스크 관리 (3)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (3)", "teacher": "송현남", "minutes": 28}, {"id": "basic-49", "course": "기본서", "originalNo": 49, "subject": 4, "title": "시장 리스크 관리 (4)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (4)", "teacher": "송현남", "minutes": 44}, {"id": "basic-50", "course": "기본서", "originalNo": 50, "subject": 4, "title": "시장 리스크 관리 (5)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (5)", "teacher": "송현남", "minutes": 39}, {"id": "basic-51", "course": "기본서", "originalNo": 51, "subject": 4, "title": "시장 리스크 관리 (6)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (6)", "teacher": "송현남", "minutes": 31}, {"id": "basic-52", "course": "기본서", "originalNo": 52, "subject": 4, "title": "시장 리스크 관리 (7)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (7)", "teacher": "송현남", "minutes": 19}, {"id": "basic-53", "course": "기본서", "originalNo": 53, "subject": 4, "title": "시장 리스크 관리 (8)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (8)", "teacher": "송현남", "minutes": 19}, {"id": "basic-54", "course": "기본서", "originalNo": 54, "subject": 4, "title": "시장 리스크 관리 (9)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (9)", "teacher": "송현남", "minutes": 27}, {"id": "basic-55", "course": "기본서", "originalNo": 55, "subject": 4, "title": "시장 리스크 관리 (10)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (10)", "teacher": "송현남", "minutes": 30}, {"id": "basic-56", "course": "기본서", "originalNo": 56, "subject": 4, "title": "시장 리스크 관리 (11)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (11)", "teacher": "송현남", "minutes": 26}, {"id": "basic-57", "course": "기본서", "originalNo": 57, "subject": 4, "title": "시장 리스크 관리 (12)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (12)", "teacher": "송현남", "minutes": 28}, {"id": "basic-58", "course": "기본서", "originalNo": 58, "subject": 4, "title": "시장 리스크 관리 (13)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (13)", "teacher": "송현남", "minutes": 26}, {"id": "basic-59", "course": "기본서", "originalNo": 59, "subject": 4, "title": "시장 리스크 관리 (14)", "fullTitle": "[4과목/3권] 시장 리스크 관리 (14)", "teacher": "송현남", "minutes": 28}, {"id": "basic-60", "course": "기본서", "originalNo": 60, "subject": 4, "title": "신용 리스크 관리 (1)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (1)", "teacher": "송현남", "minutes": 22}, {"id": "basic-61", "course": "기본서", "originalNo": 61, "subject": 4, "title": "신용 리스크 관리 (2)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (2)", "teacher": "송현남", "minutes": 35}, {"id": "basic-62", "course": "기본서", "originalNo": 62, "subject": 4, "title": "신용 리스크 관리 (3)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (3)", "teacher": "송현남", "minutes": 25}, {"id": "basic-63", "course": "기본서", "originalNo": 63, "subject": 4, "title": "신용 리스크 관리 (4)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (4)", "teacher": "송현남", "minutes": 12}, {"id": "basic-64", "course": "기본서", "originalNo": 64, "subject": 4, "title": "신용 리스크 관리 (5)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (5)", "teacher": "송현남", "minutes": 16}, {"id": "basic-65", "course": "기본서", "originalNo": 65, "subject": 4, "title": "신용 리스크 관리 (6)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (6)", "teacher": "송현남", "minutes": 25}, {"id": "basic-66", "course": "기본서", "originalNo": 66, "subject": 4, "title": "신용 리스크 관리 (7)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (7)", "teacher": "송현남", "minutes": 15}, {"id": "basic-67", "course": "기본서", "originalNo": 67, "subject": 4, "title": "신용 리스크 관리 (8)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (8)", "teacher": "송현남", "minutes": 26}, {"id": "basic-68", "course": "기본서", "originalNo": 68, "subject": 4, "title": "신용 리스크 관리 (9)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (9)", "teacher": "송현남", "minutes": 26}, {"id": "basic-69", "course": "기본서", "originalNo": 69, "subject": 4, "title": "신용 리스크 관리 (10)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (10)", "teacher": "송현남", "minutes": 20}, {"id": "basic-70", "course": "기본서", "originalNo": 70, "subject": 4, "title": "신용 리스크 관리 (11)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (11)", "teacher": "송현남", "minutes": 12}, {"id": "basic-71", "course": "기본서", "originalNo": 71, "subject": 4, "title": "신용 리스크 관리 (12)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (12)", "teacher": "송현남", "minutes": 22}, {"id": "basic-72", "course": "기본서", "originalNo": 72, "subject": 4, "title": "신용 리스크 관리 (13)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (13)", "teacher": "송현남", "minutes": 25}, {"id": "basic-73", "course": "기본서", "originalNo": 73, "subject": 4, "title": "신용 리스크 관리 (14)", "fullTitle": "[4과목/3권] 신용 리스크 관리 (14)", "teacher": "송현남", "minutes": 44}, {"id": "basic-74", "course": "기본서", "originalNo": 74, "subject": 4, "title": "기타 리스크 관리 및 사례분석 (1)", "fullTitle": "[4과목/3권] 기타 리스크 관리 및 사례분석 (1)", "teacher": "송현남", "minutes": 21}, {"id": "basic-75", "course": "기본서", "originalNo": 75, "subject": 4, "title": "기타 리스크 관리 및 사례분석 (2)", "fullTitle": "[4과목/3권] 기타 리스크 관리 및 사례분석 (2)", "teacher": "송현남", "minutes": 26}, {"id": "basic-76", "course": "기본서", "originalNo": 76, "subject": 4, "title": "기타 리스크 관리 및 사례분석 (3)", "fullTitle": "[4과목/3권] 기타 리스크 관리 및 사례분석 (3)", "teacher": "송현남", "minutes": 21}, {"id": "basic-77", "course": "기본서", "originalNo": 77, "subject": 4, "title": "기타 리스크 관리 및 사례분석 (4)", "fullTitle": "[4과목/3권] 기타 리스크 관리 및 사례분석 (4)", "teacher": "송현남", "minutes": 23}, {"id": "practice-1", "course": "문제풀이", "originalNo": 1, "subject": 1, "title": "금융통계학 (1)", "fullTitle": "[1과목] 금융통계학 (1)", "teacher": "송현남", "minutes": 45}, {"id": "practice-2", "course": "문제풀이", "originalNo": 2, "subject": 1, "title": "금융통계학 (2)", "fullTitle": "[1과목] 금융통계학 (2)", "teacher": "송현남", "minutes": 49}, {"id": "practice-3", "course": "문제풀이", "originalNo": 3, "subject": 1, "title": "금융통계학 (3)", "fullTitle": "[1과목] 금융통계학 (3)", "teacher": "송현남", "minutes": 41}, {"id": "practice-4", "course": "문제풀이", "originalNo": 4, "subject": 1, "title": "금융통계학 (4)", "fullTitle": "[1과목] 금융통계학 (4)", "teacher": "송현남", "minutes": 32}, {"id": "practice-5", "course": "문제풀이", "originalNo": 5, "subject": 1, "title": "금융통계학 (5)", "fullTitle": "[1과목] 금융통계학 (5)", "teacher": "송현남", "minutes": 21}, {"id": "practice-6", "course": "문제풀이", "originalNo": 6, "subject": 1, "title": "채권분석 (1)", "fullTitle": "[1과목] 채권분석 (1)", "teacher": "송현남", "minutes": 32}, {"id": "practice-7", "course": "문제풀이", "originalNo": 7, "subject": 1, "title": "채권분석 (2)", "fullTitle": "[1과목] 채권분석 (2)", "teacher": "송현남", "minutes": 32}, {"id": "practice-8", "course": "문제풀이", "originalNo": 8, "subject": 1, "title": "채권분석 (3)", "fullTitle": "[1과목] 채권분석 (3)", "teacher": "송현남", "minutes": 17}, {"id": "practice-9", "course": "문제풀이", "originalNo": 9, "subject": 1, "title": "채권분석 (4)", "fullTitle": "[1과목] 채권분석 (4)", "teacher": "송현남", "minutes": 13}, {"id": "practice-10", "course": "문제풀이", "originalNo": 10, "subject": 1, "title": "외국환거래법 (1)", "fullTitle": "[1과목] 외국환거래법 (1)", "teacher": "송현남", "minutes": 30}, {"id": "practice-11", "course": "문제풀이", "originalNo": 11, "subject": 1, "title": "외국환거래법 (2)", "fullTitle": "[1과목] 외국환거래법 (2)", "teacher": "송현남", "minutes": 22}, {"id": "practice-12", "course": "문제풀이", "originalNo": 12, "subject": 1, "title": "외국환거래법 (3)", "fullTitle": "[1과목] 외국환거래법 (3)", "teacher": "송현남", "minutes": 18}, {"id": "practice-13", "course": "문제풀이", "originalNo": 13, "subject": 1, "title": "자기자본건전성 규제내용 (1)", "fullTitle": "[1과목] 자기자본건전성 규제내용 (1)", "teacher": "송현남", "minutes": 32}, {"id": "practice-14", "course": "문제풀이", "originalNo": 14, "subject": 1, "title": "자기자본건전성 규제내용 (2)", "fullTitle": "[1과목] 자기자본건전성 규제내용 (2)", "teacher": "송현남", "minutes": 13}, {"id": "practice-15", "course": "문제풀이", "originalNo": 15, "subject": 1, "title": "내부통제 및 컴플라이언스 (1)", "fullTitle": "[1과목] 내부통제 및 컴플라이언스 (1)", "teacher": "송현남", "minutes": 23}, {"id": "practice-16", "course": "문제풀이", "originalNo": 16, "subject": 1, "title": "내부통제 및 컴플라이언스 (2)", "fullTitle": "[1과목] 내부통제 및 컴플라이언스 (2)", "teacher": "송현남", "minutes": 21}, {"id": "practice-17", "course": "문제풀이", "originalNo": 17, "subject": 1, "title": "장외파생상품회계 (1)", "fullTitle": "[1과목] 장외파생상품회계 (1)", "teacher": "송현남", "minutes": 25}, {"id": "practice-18", "course": "문제풀이", "originalNo": 18, "subject": 1, "title": "장외파생상품회계 (2)", "fullTitle": "[1과목] 장외파생상품회계 (2)", "teacher": "송현남", "minutes": 13}, {"id": "practice-29", "course": "문제풀이", "originalNo": 29, "subject": 3, "title": "스왑 (1)", "fullTitle": "[3과목] 스왑 (1)", "teacher": "민영기", "minutes": 37}, {"id": "practice-30", "course": "문제풀이", "originalNo": 30, "subject": 3, "title": "스왑 (2)", "fullTitle": "[3과목] 스왑 (2)", "teacher": "민영기", "minutes": 34}, {"id": "practice-31", "course": "문제풀이", "originalNo": 31, "subject": 3, "title": "스왑 (3)", "fullTitle": "[3과목] 스왑 (3)", "teacher": "민영기", "minutes": 34}, {"id": "practice-32", "course": "문제풀이", "originalNo": 32, "subject": 3, "title": "장외옵션 (1)", "fullTitle": "[3과목] 장외옵션 (1)", "teacher": "민영기", "minutes": 31}, {"id": "practice-33", "course": "문제풀이", "originalNo": 33, "subject": 3, "title": "장외옵션 (2)", "fullTitle": "[3과목] 장외옵션 (2)", "teacher": "민영기", "minutes": 30}, {"id": "practice-34", "course": "문제풀이", "originalNo": 34, "subject": 3, "title": "장외옵션 (3)", "fullTitle": "[3과목] 장외옵션 (3)", "teacher": "민영기", "minutes": 35}, {"id": "practice-35", "course": "문제풀이", "originalNo": 35, "subject": 4, "title": "시장리스크 관리 (1)", "fullTitle": "[4과목] 시장리스크 관리 (1)", "teacher": "송현남", "minutes": 41}, {"id": "practice-36", "course": "문제풀이", "originalNo": 36, "subject": 4, "title": "시장리스크 관리 (2)", "fullTitle": "[4과목] 시장리스크 관리 (2)", "teacher": "송현남", "minutes": 27}, {"id": "practice-37", "course": "문제풀이", "originalNo": 37, "subject": 4, "title": "시장리스크 관리 (3)", "fullTitle": "[4과목] 시장리스크 관리 (3)", "teacher": "송현남", "minutes": 25}, {"id": "practice-38", "course": "문제풀이", "originalNo": 38, "subject": 4, "title": "시장리스크 관리 (4)", "fullTitle": "[4과목] 시장리스크 관리 (4)", "teacher": "송현남", "minutes": 36}, {"id": "practice-39", "course": "문제풀이", "originalNo": 39, "subject": 4, "title": "신용리스크 관리 (1)", "fullTitle": "[4과목] 신용리스크 관리 (1)", "teacher": "송현남", "minutes": 36}, {"id": "practice-40", "course": "문제풀이", "originalNo": 40, "subject": 4, "title": "신용리스크 관리 (2)", "fullTitle": "[4과목] 신용리스크 관리 (2)", "teacher": "송현남", "minutes": 24}, {"id": "practice-41", "course": "문제풀이", "originalNo": 41, "subject": 4, "title": "신용리스크 관리 (3)", "fullTitle": "[4과목] 신용리스크 관리 (3)", "teacher": "송현남", "minutes": 18}, {"id": "practice-42", "course": "문제풀이", "originalNo": 42, "subject": 4, "title": "신용리스크 관리 (4)", "fullTitle": "[4과목] 신용리스크 관리 (4)", "teacher": "송현남", "minutes": 27}, {"id": "practice-43", "course": "문제풀이", "originalNo": 43, "subject": 4, "title": "기타 리스크 관리 및 사례분석 (1)", "fullTitle": "[4과목] 기타 리스크 관리 및 사례분석 (1)", "teacher": "송현남", "minutes": 15}, {"id": "practice-44", "course": "문제풀이", "originalNo": 44, "subject": 4, "title": "기타 리스크 관리 및 사례분석 (2)", "fullTitle": "[4과목] 기타 리스크 관리 및 사례분석 (2)", "teacher": "송현남", "minutes": 22}];
+const STORAGE_KEY = 'frm-planner-v3-iphone-tabs';
+const DEFAULT_EXAM_DATE = '2026-09-13';
+const DEFAULT_RECEIPT_START = '2026-08-18';
+const DEFAULT_RECEIPT_END = '2026-08-21';
+const quotes = [
+  '오늘 두 강만 끝내면 합격 쪽으로 기울어집니다.',
+  '강의 완주는 시작이고, 체크는 점수로 바뀌는 순간입니다.',
+  '완벽한 하루보다 끊기지 않는 하루가 더 강합니다.',
+  '퇴근 후 2강은 직장인 수험생의 진짜 무기입니다.',
+  '밀린 진도는 재조정하면 됩니다. 멈추지만 않으면 됩니다.'
+];
+let state = loadState();
+let currentTab = 'home';
+let lectureFilter = 'all';
+let lectureSearch = '';
+let planRange = 7;
+
+function todayISO() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0,10);
+}
+function parseDate(s) { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function formatISO(d) { const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,10); }
+function addDays(iso,n) { const d=parseDate(iso); d.setDate(d.getDate()+n); return formatISO(d); }
+function diffDays(a,b) { return Math.ceil((parseDate(b)-parseDate(a))/(1000*60*60*24)); }
+function weekdayName(iso) { return ['일','월','화','수','목','금','토'][parseDate(iso).getDay()]; }
+function capForDate(iso) { const day=parseDate(iso).getDay(); return (day===0||day===6) ? 1 : 2; }
+function minToText(m) { const h=Math.floor(m/60), mm=m%60; return h ? `${h}시간 ${mm}분` : `${mm}분`; }
+function loadState() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e) {}
+  const base = {
+    startDate: todayISO(), examDate: DEFAULT_EXAM_DATE, receiptStart: DEFAULT_RECEIPT_START, receiptEnd: DEFAULT_RECEIPT_END,
+    completed: {}, restDays: {}, plan: {}, notes: {}, theme: 'dark', createdAt: todayISO()
+  };
+  const merged = Object.assign(base, saved || {});
+  if(!merged.plan || Object.keys(merged.plan).length===0) merged.plan = makePlan(merged.startDate, false, merged);
+  return merged;
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function lectureById(id) { return LECTURES.find(x=>x.id===id); }
+function isDone(id) { return !!state.completed[id]; }
+function completedDate(id) { return typeof state.completed[id] === 'string' ? state.completed[id] : null; }
+function activeLectures(onlyIncomplete=false) { return LECTURES.filter(l => !onlyIncomplete || !isDone(l.id)); }
+function makePlan(startISO, onlyIncomplete=true, sourceState=state) {
+  const queue = LECTURES.filter(l => !onlyIncomplete || !sourceState.completed[l.id]).map(l=>l.id);
+  const plan = {};
+  let idx=0;
+  for(let iso=startISO; iso<=sourceState.examDate && idx<queue.length; iso=addDays(iso,1)) {
+    if(sourceState.restDays && sourceState.restDays[iso]) { plan[iso]=[]; continue; }
+    const cap = capForDate(iso);
+    plan[iso] = [];
+    for(let i=0;i<cap && idx<queue.length;i++) plan[iso].push(queue[idx++]);
+  }
+  return plan;
+}
+function rebuildFromToday() {
+  const t=todayISO();
+  state.startDate=t;
+  state.plan = makePlan(t, true, state);
+  saveState(); renderAll(); toast('오늘부터 미완료 강의 기준으로 다시 배정했습니다.');
+}
+function rebuildFromStart() {
+  state.plan = makePlan(state.startDate, false, state);
+  saveState(); renderAll(); toast('시작일 기준으로 전체 계획을 다시 만들었습니다.');
+}
+function toggleDone(id) {
+  if(state.completed[id]) delete state.completed[id];
+  else state.completed[id] = todayISO();
+  saveState(); renderAll();
+}
+function stats() {
+  const total=LECTURES.length;
+  const done=LECTURES.filter(l=>isDone(l.id)).length;
+  const minutes=LECTURES.filter(l=>isDone(l.id)).reduce((a,l)=>a+l.minutes,0);
+  const remaining=total-done;
+  const pct=Math.round(done/total*100);
+  const dday=Math.max(0,diffDays(todayISO(),state.examDate));
+  const scheduleDue = Object.entries(state.plan).filter(([d])=>d<=todayISO()).flatMap(([,ids])=>ids).filter(Boolean);
+  const dueIncomplete = scheduleDue.filter(id=>!isDone(id)).length;
+  return {total,done,remaining,pct,minutes,dday,dueIncomplete,scheduleDueCount:scheduleDue.length};
+}
+function phaseInfo() {
+  const basicDone = LECTURES.filter(l=>l.course==='기본서' && isDone(l.id)).length;
+  const basicTotal = LECTURES.filter(l=>l.course==='기본서').length;
+  const practiceDone = LECTURES.filter(l=>l.course==='문제풀이' && isDone(l.id)).length;
+  const practiceTotal = LECTURES.filter(l=>l.course==='문제풀이').length;
+  if(basicDone < basicTotal) return {idx:0,name:'이론완강',desc:`기본서 ${basicDone}/${basicTotal}강`};
+  if(practiceDone < practiceTotal) return {idx:1,name:'약점압축',desc:`문제풀이 ${practiceDone}/${practiceTotal}강`};
+  if(todayISO() < '2026-09-01') return {idx:2,name:'실전전환',desc:'오답·회독·기출 감각 전환'};
+  return {idx:3,name:'최종점수화',desc:'모의고사·암기표·오답 3회독'};
+}
+function paceText(s) {
+  if(s.dueIncomplete===0) return ['정상 페이스','오늘 기준 밀린 강의가 없습니다.','✅'];
+  if(s.dueIncomplete<=3) return ['주의 페이스',`밀린 강의 ${s.dueIncomplete}개만 정리하면 바로 복구됩니다.`,'🟡'];
+  return ['복구 필요',`밀린 강의 ${s.dueIncomplete}개입니다. 재조정 버튼으로 오늘부터 다시 잡는 게 좋습니다.`,'🔴'];
+}
+function renderAll() {
+  document.body.dataset.theme = state.theme;
+  document.getElementById('themeToggle').textContent = state.theme==='dark' ? '🌙' : '☀️';
+  renderHome(); renderPlan(); renderLectures(); renderStats(); renderSettings(); updateTabs();
+}
+function renderHome() {
+  const s=stats(); const p=phaseInfo(); const pace=paceText(s); const today=todayISO();
+  const todayIds = state.plan[today] || [];
+  const overdueIds = Object.entries(state.plan).filter(([d])=>d<today).flatMap(([,ids])=>ids).filter(id=>!isDone(id)).slice(0,4);
+  const quote = quotes[parseDate(today).getDate() % quotes.length];
+  document.getElementById('home').innerHTML = `
+    <section class="card hero">
+      <div class="heroTop"><div><div class="heroTitle">시험까지</div><div class="dday">D-${s.dday}</div></div><div class="badge">${p.name}</div></div>
+      <div class="grid3"><div class="stat"><b>${s.done}/${s.total}</b><span>완료 강의</span></div><div class="stat"><b>${s.pct}%</b><span>전체 진도</span></div><div class="stat"><b>${minToText(s.minutes)}</b><span>누적 시간</span></div></div>
+    </section>
+    <section class="card">
+      <div class="progressWrap"><div class="ring" style="--p:${s.pct}"><span>${s.pct}%</span></div><div class="progressText"><div class="title">${pace[2]} ${pace[0]}</div><div class="sub">${pace[1]}</div><div class="bar"><i style="width:${s.pct}%"></i></div></div></div>
+    </section>
+    <div class="sectionTitle"><h2>오늘 할 강의</h2><span>${today} (${weekdayName(today)})</span></div>
+    <section class="todayList">
+      ${overdueIds.length ? `<div class="warning"><div>⚠️</div><div><strong>밀린 강의 먼저 처리</strong>오늘 카드 위에 최근 밀린 강의 ${overdueIds.length}개를 같이 표시했습니다.</div></div>` : ''}
+      ${[...overdueIds, ...todayIds].length ? [...overdueIds, ...todayIds].map(id=>lectureCard(id)).join('') : `<div class="card"><div class="empty">오늘 배정된 강의가 없습니다.<br>계획 탭에서 재조정하거나 쉬는 날 설정을 확인해 주세요.</div></div>`}
+    </section>
+    <section class="card soft"><div class="warning"><div>💬</div><div><strong>오늘의 한마디</strong>${quote}</div></div></section>
+    <div class="sectionTitle"><h2>4단계 로드맵</h2><span>현재 ${p.name}</span></div>
+    <section class="phaseList">${renderPhases(p.idx)}</section>
+  `;
+}
+function lectureCard(id) {
+  const l=lectureById(id); if(!l) return '';
+  return `<div class="lectureCard ${isDone(id)?'done':''}" onclick="toggleDone('${id}')">
+    <div class="check">${isDone(id)?'✓':''}</div>
+    <div class="lectureInfo"><div class="meta"><span class="pill">${l.course}</span><span class="pill">${l.subject}과목</span><span class="pill">${l.minutes}분</span></div><div class="lectureTitle">${l.title}</div><div class="lectureSub">${l.teacher} · 원강의 ${l.originalNo}강</div></div>
+  </div>`;
+}
+function renderPhases(activeIdx) {
+  const arr=[['이론완강','기본서 64강 완료'],['약점압축','문제풀이 34강 완료'],['실전전환','과목별 오답·회독'],['최종점수화','모의고사·암기표 마무리']];
+  return arr.map((x,i)=>`<div class="phase ${i<activeIdx?'done':''} ${i===activeIdx?'active':''}"><div class="dot">${i<activeIdx?'✓':i+1}</div><div><b>${x[0]}</b><small>${x[1]}</small></div></div>`).join('');
+}
+function renderPlan() {
+  const today=todayISO();
+  const dates=[]; for(let i=0;i<planRange;i++) dates.push(addDays(today,i));
+  document.getElementById('plan').innerHTML = `
+    <div class="sectionTitle"><h2>날짜별 계획</h2><span>주중 2강 · 주말 1강</span></div>
+    <div class="segment"><button class="${planRange===7?'active':''}" onclick="planRange=7;renderPlan()">7일</button><button class="${planRange===14?'active':''}" onclick="planRange=14;renderPlan()">14일</button><button class="${planRange===30?'active':''}" onclick="planRange=30;renderPlan()">30일</button></div>
+    <div class="row2"><button class="btn" onclick="rebuildFromToday()">오늘부터 재조정</button><button class="btn ghost" onclick="scrollToSettingsRest()">쉬는 날 설정</button></div>
+    <div class="note" style="margin-top:10px">완료하지 않은 강의만 오늘부터 다시 배정할 수 있습니다. 시험 전까지 남은 날짜 안에 배치됩니다.</div>
+    <section>${dates.map(planDay).join('')}</section>
+  `;
+}
+function planDay(iso) {
+  const ids=state.plan[iso] || [];
+  const isRest=!!state.restDays[iso];
+  return `<div class="planDay ${isRest?'dayOff':''}"><div class="planHead"><div class="planDate">${iso} (${weekdayName(iso)})</div><div class="planCount">${isRest?'쉬는 날':ids.length+'강'}</div></div>
+    ${isRest ? '<div class="empty">휴식일로 설정됨</div>' : (ids.length ? ids.map(id=>miniLecture(id)).join('') : '<div class="empty">배정된 강의 없음</div>')}
+  </div>`;
+}
+function miniLecture(id) { const l=lectureById(id); return `<div class="miniLecture" onclick="toggleDone('${id}')"><div class="check" style="width:24px;height:24px;border-radius:8px;font-size:12px">${isDone(id)?'✓':''}</div><div class="miniTitle">${l.title}<div class="miniMeta">${l.course} · ${l.subject}과목 · ${l.minutes}분</div></div></div>`; }
+function renderLectures() {
+  const filters=[['all','전체'],['basic','기본서'],['practice','문제풀이'],['s1','1과목'],['s3','3과목'],['s4','4과목'],['done','완료'],['todo','미완료']];
+  let list=LECTURES.slice();
+  if(lectureFilter==='basic') list=list.filter(l=>l.course==='기본서');
+  if(lectureFilter==='practice') list=list.filter(l=>l.course==='문제풀이');
+  if(lectureFilter==='s1') list=list.filter(l=>l.subject===1);
+  if(lectureFilter==='s3') list=list.filter(l=>l.subject===3);
+  if(lectureFilter==='s4') list=list.filter(l=>l.subject===4);
+  if(lectureFilter==='done') list=list.filter(l=>isDone(l.id));
+  if(lectureFilter==='todo') list=list.filter(l=>!isDone(l.id));
+  if(lectureSearch.trim()) { const q=lectureSearch.trim().toLowerCase(); list=list.filter(l=>(l.title+l.course+l.subject+l.teacher).toLowerCase().includes(q)); }
+  const groups={}; list.forEach(l=>{ const key=`${l.course} · ${l.subject}과목`; (groups[key] ||= []).push(l); });
+  document.getElementById('lectures').innerHTML = `
+    <div class="sectionTitle"><h2>강의 체크리스트</h2><span>${list.length}강 표시</span></div>
+    <input class="search" placeholder="강의 검색" value="${escapeHtml(lectureSearch)}" oninput="lectureSearch=this.value;renderLectures()" />
+    <div class="toolbar">${filters.map(f=>`<button class="chip ${lectureFilter===f[0]?'active':''}" onclick="lectureFilter='${f[0]}';renderLectures()">${f[1]}</button>`).join('')}</div>
+    <section>${Object.keys(groups).length ? Object.entries(groups).map(([key,arr],idx)=>accordion(key,arr,idx<2)).join('') : '<div class="card"><div class="empty">조건에 맞는 강의가 없습니다.</div></div>'}</section>
+  `;
+}
+function accordion(key, arr, open=false) {
+  const done=arr.filter(l=>isDone(l.id)).length;
+  return `<div class="accordion ${open?'open':''}"><button class="accHead" onclick="this.parentElement.classList.toggle('open')"><b>${key}</b><span>${done}/${arr.length} 완료</span></button><div class="accBody">${arr.map(l=>lectureCard(l.id)).join('')}</div></div>`;
+}
+function renderStats() {
+  const s=stats(); const bySubject=[1,3,4].map(sub=>{ const total=LECTURES.filter(l=>l.subject===sub).length; const done=LECTURES.filter(l=>l.subject===sub&&isDone(l.id)).length; return {name:sub+'과목',done,total,pct:Math.round(done/total*100)}; });
+  const byCourse=['기본서','문제풀이'].map(c=>{ const total=LECTURES.filter(l=>l.course===c).length; const done=LECTURES.filter(l=>l.course===c&&isDone(l.id)).length; return {name:c,done,total,pct:Math.round(done/total*100)}; });
+  document.getElementById('stats').innerHTML = `
+    <div class="sectionTitle"><h2>진도 대시보드</h2><span>${s.pct}%</span></div>
+    <section class="card"><div class="progressWrap"><div class="ring" style="--p:${s.pct}"><span>${s.pct}%</span></div><div class="progressText"><div class="title">총 ${s.done}강 완료</div><div class="sub">남은 강의 ${s.remaining}강 · 누적 ${minToText(s.minutes)}</div><div class="bar"><i style="width:${s.pct}%"></i></div></div></div></section>
+    <div class="sectionTitle"><h2>과목별 진도율</h2><span>2과목 제외</span></div><section class="subjectBars">${[...bySubject,...byCourse].map(subjectRow).join('')}</section>
+    <div class="sectionTitle"><h2>최근 7일 학습 그래프</h2><span>완료 강의 수</span></div><section class="card"><div class="graph">${weeklyBars()}</div></section>
+    <div class="sectionTitle"><h2>학습 잔디</h2><span>최근 84일</span></div><section class="card"><div class="heatmap">${heatmap()}</div><div class="note" style="margin-top:10px">색이 진할수록 그날 완료한 강의가 많습니다.</div></section>
+  `;
+}
+function subjectRow(x) { return `<div class="subjectRow"><div class="subjectTop"><span>${x.name}</span><span>${x.done}/${x.total} · ${x.pct}%</span></div><div class="bar"><i style="width:${x.pct}%"></i></div></div>`; }
+function completionsByDate() {
+  const map={}; Object.values(state.completed).forEach(v=>{ if(typeof v==='string') map[v]=(map[v]||0)+1; }); return map;
+}
+function weeklyBars() { const m=completionsByDate(); let max=1; const days=[]; for(let i=6;i>=0;i--){ const iso=addDays(todayISO(),-i); const c=m[iso]||0; max=Math.max(max,c); days.push([iso,c]); } return days.map(([iso,c])=>`<div class="gbar" style="height:${Math.max(4,Math.round(c/max*80))}px"><span>${weekdayName(iso)}</span></div>`).join(''); }
+function heatmap() { const m=completionsByDate(); let html=''; for(let i=83;i>=0;i--){ const iso=addDays(todayISO(),-i); const c=m[iso]||0; const level=c>=3?'l3':c>=2?'l2':c>=1?'l1':''; html += `<div class="cell ${level}" title="${iso} ${c}강"></div>`; } return html; }
+function renderSettings() {
+  const restList=Object.keys(state.restDays).sort();
+  document.getElementById('settings').innerHTML = `
+    <div class="sectionTitle"><h2>설정</h2><span>저장은 자동</span></div>
+    <section class="card">
+      <div class="formRow"><label>시작일</label><input type="date" value="${state.startDate}" onchange="state.startDate=this.value;rebuildFromStart()"></div>
+      <div class="formRow"><label>시험일</label><input type="date" value="${state.examDate}" onchange="state.examDate=this.value;rebuildFromToday()"></div>
+      <div class="row2"><div class="formRow"><label>접수 시작</label><input type="date" value="${state.receiptStart}" onchange="state.receiptStart=this.value;saveState();renderAll()"></div><div class="formRow"><label>접수 종료</label><input type="date" value="${state.receiptEnd}" onchange="state.receiptEnd=this.value;saveState();renderAll()"></div></div>
+      <div class="note">현재 계획은 평일 2강, 토·일 1강 기준입니다. 2과목 강의는 면제 전제로 제외되어 있습니다.</div>
+    </section>
+    <section class="card" id="restSection"><h2 style="font-size:17px;margin:0 0 10px">휴가·쉬는 날</h2><div class="row2"><input type="date" id="restDate" value="${todayISO()}"><button class="btn" onclick="addRestDay()">추가</button></div><div class="note" style="margin:10px 0">쉬는 날을 추가하면 오늘부터 미완료 강의를 다시 배정합니다.</div><div class="toolbar">${restList.length ? restList.map(d=>`<button class="chip" onclick="removeRestDay('${d}')">${d} ✕</button>`).join('') : '<span class="note">등록된 쉬는 날 없음</span>'}</div></section>
+    <section class="card"><h2 style="font-size:17px;margin:0 0 10px">백업·복원</h2><div class="row2"><button class="btn ghost" onclick="downloadBackup()">백업 저장</button><button class="btn ghost" onclick="document.getElementById('restoreFile').click()">복원 불러오기</button></div><input id="restoreFile" type="file" accept="application/json" style="display:none" onchange="restoreBackup(event)"><div class="note" style="margin-top:10px">아이폰 파일 앱에 JSON으로 저장해두면 기기를 바꿔도 복원할 수 있습니다.</div></section>
+    <section class="card"><button class="btn danger" onclick="resetAll()">전체 진도 초기화</button><div class="note" style="margin-top:10px">강의를 처음부터 다시 체크하고 싶을 때만 사용하세요.</div></section>
+  `;
+}
+function addRestDay() { const d=document.getElementById('restDate').value; if(!d) return; state.restDays[d]=true; rebuildFromToday(); }
+function removeRestDay(d) { delete state.restDays[d]; rebuildFromToday(); }
+function scrollToSettingsRest() { switchTab('settings'); setTimeout(()=>document.getElementById('restSection')?.scrollIntoView({behavior:'smooth',block:'start'}),80); }
+function downloadBackup() {
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`frm-planner-backup-${todayISO()}.json`; a.click(); URL.revokeObjectURL(a.href);
+}
+function restoreBackup(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader(); r.onload=()=>{ try{ state=Object.assign(state, JSON.parse(r.result)); saveState(); renderAll(); toast('백업을 복원했습니다.'); }catch(err){ toast('복원 파일을 확인해 주세요.'); } }; r.readAsText(file);
+}
+function resetAll() { if(!confirm('완료 체크와 계획을 모두 초기화할까요?')) return; state.completed={}; state.notes={}; state.startDate=todayISO(); state.plan=makePlan(state.startDate,false,state); saveState(); renderAll(); toast('처음부터 다시 시작하도록 초기화했습니다.'); }
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1800); }
+function switchTab(tab) { currentTab=tab; document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===tab)); updateTabs(); window.scrollTo({top:0,behavior:'smooth'}); }
+function updateTabs() { document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===currentTab)); }
+document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+document.getElementById('themeToggle').addEventListener('click',()=>{ state.theme = state.theme==='dark'?'light':'dark'; saveState(); renderAll(); });
+window.toggleDone=toggleDone; window.rebuildFromToday=rebuildFromToday; window.rebuildFromStart=rebuildFromStart; window.scrollToSettingsRest=scrollToSettingsRest; window.addRestDay=addRestDay; window.removeRestDay=removeRestDay; window.downloadBackup=downloadBackup; window.restoreBackup=restoreBackup; window.resetAll=resetAll;
+renderAll();
+</script>
+</body>
+</html>
