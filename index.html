@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#12141b" />
-<title>재무위험관리사 합격 플래너 v5</title>
+<title>재무위험관리사 합격 플래너 v6</title>
 <style>
 :root {
   --bg:#f5f6fa; --card:#ffffff; --card2:#f0f2f7; --text:#111521; --muted:#6e7483; --line:#e3e6ef;
@@ -53,6 +53,10 @@ h1{font-size:23px;line-height:1.12;margin:0;font-weight:900;letter-spacing:-.045
 .sectionTitle h2{margin:0;font-size:17px;letter-spacing:-.035em}
 .sectionTitle span{font-size:12px;color:var(--muted);font-weight:800}
 .todayList{display:flex;flex-direction:column;gap:10px}
+.todoGroupTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 2px 2px;color:var(--muted);font-size:12px;font-weight:950;letter-spacing:-.02em}
+.todoGroupTitle b{font-size:13px;color:var(--text)}
+.inlineBtn{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:950;white-space:nowrap}
+.overdueNotice{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.09)}
 .lectureCard{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:13px;display:flex;gap:12px;align-items:flex-start}
 .lectureCard.done{opacity:.48}
 .check{width:30px;height:30px;border-radius:10px;border:1px solid var(--line);background:var(--card2);display:grid;place-items:center;flex:0 0 auto;font-weight:950}
@@ -183,6 +187,7 @@ let currentTab = 'home';
 let lectureFilter = 'all';
 let lectureSearch = '';
 let planRange = 7;
+let showAllOverdue = false;
 
 function todayISO() {
   const d = new Date();
@@ -275,9 +280,26 @@ function renderAll() {
 }
 function renderHome() {
   const s=stats(); const p=phaseInfo(); const pace=paceText(s); const today=todayISO();
-  const todayIds = state.plan[today] || [];
-  const overdueIds = Object.entries(state.plan).filter(([d])=>d<today).flatMap(([,ids])=>ids).filter(id=>!isDone(id)).slice(0,4);
+  const todayIds = (state.plan[today] || []).filter(id=>!isDone(id));
+  const overdueAll = Object.entries(state.plan)
+    .filter(([d])=>d<today)
+    .sort(([a],[b])=>a.localeCompare(b))
+    .flatMap(([,ids])=>ids)
+    .filter(id=>!isDone(id));
+  const overdueLimit = 7;
+  const overdueShown = showAllOverdue ? overdueAll : overdueAll.slice(0, overdueLimit);
+  const hasHiddenOverdue = overdueAll.length > overdueLimit;
   const quote = quotes[parseDate(today).getDate() % quotes.length];
+  const overdueBlock = overdueAll.length ? `
+      <div class="warning overdueNotice"><div>⚠️</div><div><strong>밀린 강의 먼저 처리</strong>미완료 강의 ${overdueAll.length}개가 오늘 목록에 누적되었습니다. 완료하면 자동으로 이 목록에서 빠집니다.</div></div>
+      <div class="todoGroupTitle"><b>밀린 강의 ${overdueAll.length}개</b>${hasHiddenOverdue ? `<button class="inlineBtn" onclick="toggleOverdueView(event)">${showAllOverdue ? '접기' : '전체보기'}</button>` : ''}</div>
+      ${overdueShown.map(id=>lectureCard(id, 'overdue')).join('')}
+      ${hasHiddenOverdue && !showAllOverdue ? `<button class="inlineBtn" onclick="toggleOverdueView(event)" style="width:100%;padding:12px">밀린 강의 ${overdueAll.length}개 전체보기</button>` : ''}
+    ` : '';
+  const todayBlock = todayIds.length ? `
+      <div class="todoGroupTitle"><b>오늘 배정 강의 ${todayIds.length}개</b><span>${today} (${weekdayName(today)})</span></div>
+      ${todayIds.map(id=>lectureCard(id, 'today')).join('')}
+    ` : '';
   document.getElementById('home').innerHTML = `
     <section class="card hero">
       <div class="heroTop"><div><div class="heroTitle">시험까지</div><div class="dday">D-${s.dday}</div></div><div class="badge">${p.name}</div></div>
@@ -286,22 +308,29 @@ function renderHome() {
     <section class="card">
       <div class="progressWrap"><div class="ring" style="--p:${s.pct}"><span>${s.pct}%</span></div><div class="progressText"><div class="title">${pace[2]} ${pace[0]}</div><div class="sub">${pace[1]}</div><div class="bar"><i style="width:${s.pct}%"></i></div></div></div>
     </section>
-    <div class="sectionTitle"><h2>오늘 할 강의</h2><span>${today} (${weekdayName(today)})</span></div>
+    <div class="sectionTitle"><h2>오늘 할 강의</h2><span>밀린 강의 우선</span></div>
     <section class="todayList">
-      ${overdueIds.length ? `<div class="warning"><div>⚠️</div><div><strong>밀린 강의 먼저 처리</strong>오늘 카드 위에 최근 밀린 강의 ${overdueIds.length}개를 같이 표시했습니다.</div></div>` : ''}
-      ${[...overdueIds, ...todayIds].length ? [...overdueIds, ...todayIds].map(id=>lectureCard(id)).join('') : `<div class="card"><div class="empty">오늘 배정된 강의가 없습니다.<br>계획 탭에서 재조정하거나 쉬는 날 설정을 확인해 주세요.</div></div>`}
+      ${overdueBlock}
+      ${todayBlock}
+      ${(!overdueAll.length && !todayIds.length) ? `<div class="card"><div class="empty">오늘 처리할 미완료 강의가 없습니다.<br>계획 탭에서 재조정하거나 쉬는 날 설정을 확인해 주세요.</div></div>` : ''}
     </section>
     <section class="card soft"><div class="warning"><div>💬</div><div><strong>오늘의 한마디</strong>${quote}</div></div></section>
     <div class="sectionTitle"><h2>4단계 로드맵</h2><span>현재 ${p.name}</span></div>
     <section class="phaseList">${renderPhases(p.idx)}</section>
   `;
 }
-function lectureCard(id) {
+function lectureCard(id, status='') {
   const l=lectureById(id); if(!l) return '';
+  const statusLabel = status==='overdue' ? '<span class="pill">밀림</span>' : (status==='today' ? '<span class="pill">오늘</span>' : '');
   return `<div class="lectureCard ${isDone(id)?'done':''}" onclick="toggleDone('${id}')">
     <div class="check">${isDone(id)?'✓':''}</div>
-    <div class="lectureInfo"><div class="meta"><span class="pill">${l.course}</span><span class="pill">${l.subject}과목</span><span class="pill">${l.minutes}분</span></div><div class="lectureTitle">${l.title}</div><div class="lectureSub">${l.teacher} · 원강의 ${l.originalNo}강</div></div>
+    <div class="lectureInfo"><div class="meta">${statusLabel}<span class="pill">${l.course}</span><span class="pill">${l.subject}과목</span><span class="pill">${l.minutes}분</span></div><div class="lectureTitle">${l.title}</div><div class="lectureSub">${l.teacher} · 원강의 ${l.originalNo}강</div></div>
   </div>`;
+}
+function toggleOverdueView(e) {
+  if(e) e.stopPropagation();
+  showAllOverdue = !showAllOverdue;
+  renderHome();
 }
 function renderPhases(activeIdx) {
   const arr=[['이론완강','기본서 64강 완료'],['약점압축','문제풀이 34강 완료'],['실전전환','과목별 오답·회독'],['최종점수화','모의고사·암기표 마무리']];
