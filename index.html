@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#12141b" />
-<title>재무위험관리사 합격 플래너</title>
+<title>재무위험관리사 합격 플래너 v5</title>
 <style>
 :root {
   --bg:#f5f6fa; --card:#ffffff; --card2:#f0f2f7; --text:#111521; --muted:#6e7483; --line:#e3e6ef;
@@ -28,7 +28,7 @@ button,input,select,textarea{font-family:inherit;color:inherit}
 .brand .kicker{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.02em}
 h1{font-size:23px;line-height:1.12;margin:0;font-weight:900;letter-spacing:-.045em}
 .iconBtn{border:1px solid var(--line);background:rgba(255,255,255,.04);width:42px;height:42px;border-radius:15px;display:grid;place-items:center;font-size:18px;box-shadow:none}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:12px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:12px 0;overflow:hidden}
 .card.soft{background:var(--card2);box-shadow:none}
 .hero{padding:18px;background:linear-gradient(135deg,rgba(109,93,252,.92),rgba(47,139,255,.82));color:white;border:0;overflow:hidden;position:relative}
 .hero:after{content:"";position:absolute;right:-42px;top:-42px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.13)}
@@ -41,9 +41,9 @@ h1{font-size:23px;line-height:1.12;margin:0;font-weight:900;letter-spacing:-.045
 .stat b{display:block;font-size:18px;letter-spacing:-.03em}
 .stat span{display:block;margin-top:2px;font-size:11px;opacity:.8;font-weight:700}
 .progressWrap{display:flex;align-items:center;gap:14px}
-.ring{--p:0;width:82px;height:82px;border-radius:50%;background:conic-gradient(var(--primary) calc(var(--p)*1%),var(--card2) 0);display:grid;place-items:center;flex:0 0 auto}
-.ring:before{content:"";width:64px;height:64px;border-radius:50%;background:var(--card)}
-.ring span{position:absolute;font-weight:950;font-size:17px}
+.ring{--p:0;width:82px;height:82px;border-radius:50%;background:conic-gradient(var(--primary) calc(var(--p)*1%),var(--card2) 0);display:grid;place-items:center;flex:0 0 82px;position:relative;overflow:hidden}
+.ring:before{content:"";width:64px;height:64px;border-radius:50%;background:var(--card);grid-area:1/1}
+.ring span{position:absolute;inset:0;display:grid;place-items:center;font-weight:950;font-size:17px;line-height:1;z-index:2;text-align:center}
 .progressText{min-width:0;flex:1}
 .progressText .title{font-weight:900;font-size:17px;letter-spacing:-.03em}
 .progressText .sub{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.45}
@@ -114,18 +114,34 @@ h1{font-size:23px;line-height:1.12;margin:0;font-weight:900;letter-spacing:-.045
 .cell.l1{background:rgba(109,93,252,.30)}.cell.l2{background:rgba(109,93,252,.55)}.cell.l3{background:rgba(109,93,252,.85)}
 .formRow{display:grid;gap:6px;margin:12px 0}
 label{font-size:12px;color:var(--muted);font-weight:900}
-input[type="date"],select,textarea{width:100%;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:12px;font-size:14px;outline:none}
+input[type="date"],select,textarea{width:100%;max-width:100%;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:12px;font-size:14px;outline:none;display:block}
+input[type="date"]{-webkit-appearance:none;appearance:none;text-align:center;line-height:1.2;height:54px;overflow:hidden}
+input[type="date"]::-webkit-date-and-time-value{text-align:center;display:block;min-width:0}
+input[type="date"]::-webkit-calendar-picker-indicator{margin:0;padding:0;opacity:.65}
+.dateBox{width:100%;max-width:100%;min-width:0;height:54px;border:1px solid var(--line);background:var(--card);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:0 10px}
+.dateBox span{font-size:14px;font-weight:850;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.dateBox input[type="date"]{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:2;padding:0;border:0;background:transparent;cursor:pointer}
 textarea{min-height:92px;resize:vertical}
-.btn{border:0;border-radius:16px;background:var(--primary);color:white;padding:12px 14px;font-weight:950;font-size:13px;width:100%}
+.btn{border:0;border-radius:16px;background:var(--primary);color:white;padding:12px 14px;font-weight:950;font-size:13px;width:100%;min-width:0}
 .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
 .btn.danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.35)}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.formRow,.row2,.row2>*{min-width:0;max-width:100%}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .note{font-size:12px;color:var(--muted);line-height:1.5}
 .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#111827;color:#fff;padding:11px 14px;border-radius:999px;font-size:12px;font-weight:850;opacity:0;pointer-events:none;transition:.25s;z-index:99;box-shadow:0 12px 28px rgba(0,0,0,.28)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .smallLink{border:0;background:transparent;color:var(--primary);font-weight:900;font-size:12px;padding:0}
 @media (max-width:360px){.app{padding-left:10px;padding-right:10px}h1{font-size:21px}.dday{font-size:30px}.grid3{gap:6px}.stat{padding:8px}.stat b{font-size:16px}}
 @media (min-width:431px){body{background:#080a0f}.app{box-shadow:0 0 0 1px rgba(255,255,255,.08);}}
+
+@media (max-width:390px){
+  .app{padding-left:12px;padding-right:12px}
+  .card{padding:15px}
+  .dateBox{height:52px;padding:0 8px}
+  .dateBox span{font-size:13px}
+  input[type="date"]{font-size:13px;height:52px;padding:10px 8px}
+  .row2{gap:7px}
+}
 </style>
 </head>
 <body data-theme="dark">
@@ -180,6 +196,9 @@ function diffDays(a,b) { return Math.ceil((parseDate(b)-parseDate(a))/(1000*60*6
 function weekdayName(iso) { return ['일','월','화','수','목','금','토'][parseDate(iso).getDay()]; }
 function capForDate(iso) { const day=parseDate(iso).getDay(); return (day===0||day===6) ? 1 : 2; }
 function minToText(m) { const h=Math.floor(m/60), mm=m%60; return h ? `${h}시간 ${mm}분` : `${mm}분`; }
+function prettyDate(iso) { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${Number(y)}. ${Number(m)}. ${Number(d)}.`; }
+function dateField(id, value, changeCode) { return `<div class="dateBox" onclick="openDateInput('${id}')"><span>${prettyDate(value)}</span><input type="date" id="${id}" value="${value}" onchange="${changeCode}"></div>`; }
+function openDateInput(id) { const el=document.getElementById(id); if(!el) return; if(el.showPicker) el.showPicker(); else el.focus(); }
 function loadState() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e) {}
@@ -352,12 +371,12 @@ function renderSettings() {
   document.getElementById('settings').innerHTML = `
     <div class="sectionTitle"><h2>설정</h2><span>저장은 자동</span></div>
     <section class="card">
-      <div class="formRow"><label>시작일</label><input type="date" value="${state.startDate}" onchange="state.startDate=this.value;rebuildFromStart()"></div>
-      <div class="formRow"><label>시험일</label><input type="date" value="${state.examDate}" onchange="state.examDate=this.value;rebuildFromToday()"></div>
-      <div class="row2"><div class="formRow"><label>접수 시작</label><input type="date" value="${state.receiptStart}" onchange="state.receiptStart=this.value;saveState();renderAll()"></div><div class="formRow"><label>접수 종료</label><input type="date" value="${state.receiptEnd}" onchange="state.receiptEnd=this.value;saveState();renderAll()"></div></div>
+      <div class="formRow"><label>시작일</label>${dateField('startDateInput', state.startDate, 'state.startDate=this.value;rebuildFromStart()')}</div>
+      <div class="formRow"><label>시험일</label>${dateField('examDateInput', state.examDate, 'state.examDate=this.value;rebuildFromToday()')}</div>
+      <div class="row2"><div class="formRow"><label>접수 시작</label>${dateField('receiptStartInput', state.receiptStart, 'state.receiptStart=this.value;saveState();renderAll()')}</div><div class="formRow"><label>접수 종료</label>${dateField('receiptEndInput', state.receiptEnd, 'state.receiptEnd=this.value;saveState();renderAll()')}</div></div>
       <div class="note">현재 계획은 평일 2강, 토·일 1강 기준입니다. 2과목 강의는 면제 전제로 제외되어 있습니다.</div>
     </section>
-    <section class="card" id="restSection"><h2 style="font-size:17px;margin:0 0 10px">휴가·쉬는 날</h2><div class="row2"><input type="date" id="restDate" value="${todayISO()}"><button class="btn" onclick="addRestDay()">추가</button></div><div class="note" style="margin:10px 0">쉬는 날을 추가하면 오늘부터 미완료 강의를 다시 배정합니다.</div><div class="toolbar">${restList.length ? restList.map(d=>`<button class="chip" onclick="removeRestDay('${d}')">${d} ✕</button>`).join('') : '<span class="note">등록된 쉬는 날 없음</span>'}</div></section>
+    <section class="card" id="restSection"><h2 style="font-size:17px;margin:0 0 10px">휴가·쉬는 날</h2><div class="row2">${dateField('restDate', todayISO(), '')}<button class="btn" onclick="addRestDay()">추가</button></div><div class="note" style="margin:10px 0">쉬는 날을 추가하면 오늘부터 미완료 강의를 다시 배정합니다.</div><div class="toolbar">${restList.length ? restList.map(d=>`<button class="chip" onclick="removeRestDay('${d}')">${d} ✕</button>`).join('') : '<span class="note">등록된 쉬는 날 없음</span>'}</div></section>
     <section class="card"><h2 style="font-size:17px;margin:0 0 10px">백업·복원</h2><div class="row2"><button class="btn ghost" onclick="downloadBackup()">백업 저장</button><button class="btn ghost" onclick="document.getElementById('restoreFile').click()">복원 불러오기</button></div><input id="restoreFile" type="file" accept="application/json" style="display:none" onchange="restoreBackup(event)"><div class="note" style="margin-top:10px">아이폰 파일 앱에 JSON으로 저장해두면 기기를 바꿔도 복원할 수 있습니다.</div></section>
     <section class="card"><button class="btn danger" onclick="resetAll()">전체 진도 초기화</button><div class="note" style="margin-top:10px">강의를 처음부터 다시 체크하고 싶을 때만 사용하세요.</div></section>
   `;
