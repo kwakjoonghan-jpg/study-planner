@@ -146,6 +146,45 @@ textarea{min-height:92px;resize:vertical}
   input[type="date"]{font-size:13px;height:52px;padding:10px 8px}
   .row2{gap:7px}
 }
+
+/* ===== MILESTONE TIMELINE ===== */
+.tlStrip{position:relative;height:56px;margin:6px 6px 2px}
+.tlTrack{position:absolute;left:0;right:0;top:26px;height:3px;background:var(--card2);border-radius:999px}
+.tlFill{position:absolute;left:0;top:26px;height:3px;background:linear-gradient(90deg,var(--success),var(--primary));border-radius:999px}
+.tlToday{position:absolute;top:18px;width:2px;height:20px;background:var(--warning);border-radius:2px;transform:translateX(-50%)}
+.tlDot{position:absolute;top:22px;width:10px;height:10px;border-radius:50%;border:2px solid var(--card);transform:translateX(-50%);z-index:2}
+.tlDot.done{background:var(--success);border-color:var(--success)}
+.tlDot.future{background:var(--primary);border-color:var(--primary)}
+.tlDot.exam{background:var(--danger);border-color:var(--danger);width:12px;height:12px;top:21px}
+.tlLbl{position:absolute;top:38px;font-size:9px;font-weight:900;color:var(--muted);white-space:nowrap;transform:translateX(-50%);line-height:1.3;text-align:center}
+.tlLblTop{position:absolute;top:5px;font-size:9px;font-weight:900;color:var(--warning);white-space:nowrap;transform:translateX(-50%)}
+.tlEdge{font-size:10px;font-weight:900;color:var(--muted)}
+.tlEdgeRow{display:flex;justify-content:space-between;margin-top:4px}
+.msGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.msCol{background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:11px 12px}
+.msColHead{font-size:11px;font-weight:950;color:var(--muted);letter-spacing:.04em;padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:5px}
+.msRow{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.msSubj{font-size:12px;font-weight:900;color:var(--text)}
+.msVal{text-align:right}
+.msDate{display:block;font-size:12px;font-weight:900;color:var(--primary)}
+.msDday{display:block;font-size:10px;color:var(--muted);font-weight:800}
+.msDone{display:block;font-size:11px;color:var(--success);font-weight:900}
+.msNone{display:block;font-size:11px;color:var(--danger);font-weight:800}
+.msBanner{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);background:var(--card2);border-radius:18px;padding:11px 14px;margin-top:8px}
+.msBanner.basic{border-color:rgba(109,93,252,.4);background:rgba(109,93,252,.09)}
+.msBanner.practice{border-color:rgba(24,160,88,.35);background:rgba(24,160,88,.08)}
+.msBannerName{font-size:13px;font-weight:900}
+.msBannerDate{font-size:13px;font-weight:900;color:var(--primary)}
+.msBannerDone{font-size:13px;font-weight:900;color:var(--success)}
+/* ===== GIST SYNC ===== */
+.gistStatus{display:flex;align-items:center;gap:7px;margin-top:12px;font-size:12px;color:var(--muted);font-weight:800}
+.gistDot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:var(--card2);border:1px solid var(--line)}
+.gistDot.ok{background:var(--success);border-color:var(--success)}
+.gistDot.err{background:var(--danger);border-color:var(--danger)}
+.gistDot.idle{background:var(--warning);border-color:var(--warning)}
+.patWrap{position:relative}
+.patWrap input[type="password"],.patWrap input[type="text"]{padding-right:46px}
+.patToggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);font-size:16px;padding:4px;line-height:1;cursor:pointer}
 </style>
 </head>
 <body data-theme="dark">
@@ -183,6 +222,13 @@ const quotes = [
   '밀린 진도는 재조정하면 됩니다. 멈추지만 않으면 됩니다.'
 ];
 let state = loadState();
+let githubPAT = '';
+let gistID = '';
+let lastGistSync = '';
+let _syncTimer = null;
+try { githubPAT = localStorage.getItem('frm-gist-pat') || ''; } catch(e) {}
+try { gistID    = localStorage.getItem('frm-gist-id')  || ''; } catch(e) {}
+try { lastGistSync = localStorage.getItem('frm-gist-sync') || ''; } catch(e) {}
 let currentTab = 'home';
 let lectureFilter = 'all';
 let lectureSearch = '';
@@ -215,7 +261,7 @@ function loadState() {
   if(!merged.plan || Object.keys(merged.plan).length===0) merged.plan = makePlan(merged.startDate, false, merged);
   return merged;
 }
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); autoSyncGist(); }
 function lectureById(id) { return LECTURES.find(x=>x.id===id); }
 function isDone(id) { return !!state.completed[id]; }
 function completedDate(id) { return typeof state.completed[id] === 'string' ? state.completed[id] : null; }
@@ -308,6 +354,8 @@ function renderHome() {
     <section class="card">
       <div class="progressWrap"><div class="ring" style="--p:${s.pct}"><span>${s.pct}%</span></div><div class="progressText"><div class="title">${pace[2]} ${pace[0]}</div><div class="sub">${pace[1]}</div><div class="bar"><i style="width:${s.pct}%"></i></div></div></div>
     </section>
+    <div class="sectionTitle"><h2>전체 학습 일정</h2><span>예상 완료일</span></div>
+    <section class="card">${renderMilestoneBlock()}</section>
     <div class="sectionTitle"><h2>오늘 할 강의</h2><span>밀린 강의 우선</span></div>
     <section class="todayList">
       ${overdueBlock}
@@ -406,7 +454,32 @@ function renderSettings() {
       <div class="note">현재 계획은 평일 2강, 토·일 1강 기준입니다. 2과목 강의는 면제 전제로 제외되어 있습니다.</div>
     </section>
     <section class="card" id="restSection"><h2 style="font-size:17px;margin:0 0 10px">휴가·쉬는 날</h2><div class="row2">${dateField('restDate', todayISO(), '')}<button class="btn" onclick="addRestDay()">추가</button></div><div class="note" style="margin:10px 0">쉬는 날을 추가하면 오늘부터 미완료 강의를 다시 배정합니다.</div><div class="toolbar">${restList.length ? restList.map(d=>`<button class="chip" onclick="removeRestDay('${d}')">${d} ✕</button>`).join('') : '<span class="note">등록된 쉬는 날 없음</span>'}</div></section>
-    <section class="card"><h2 style="font-size:17px;margin:0 0 10px">백업·복원</h2><div class="row2"><button class="btn ghost" onclick="downloadBackup()">백업 저장</button><button class="btn ghost" onclick="document.getElementById('restoreFile').click()">복원 불러오기</button></div><input id="restoreFile" type="file" accept="application/json" style="display:none" onchange="restoreBackup(event)"><div class="note" style="margin-top:10px">아이폰 파일 앱에 JSON으로 저장해두면 기기를 바꿔도 복원할 수 있습니다.</div></section>
+    <section class="card">
+      <h2 style="font-size:17px;margin:0 0 4px">☁️ Gist 자동 저장</h2>
+      <p class="note" style="margin:0 0 14px;line-height:1.55">GitHub Personal Access Token을 입력하면 강의를 체크할 때마다 <b>3초 후 자동으로 Gist에 저장</b>됩니다. 토큰 권한: <b>gist</b>만 선택하면 됩니다.</p>
+      <div class="formRow">
+        <label>GitHub Token (PAT)</label>
+        <div class="patWrap">
+          <input type="password" id="gistPAT" placeholder="ghp_xxxxxxxxxxxx" value="${escapeHtml(githubPAT)}" style="border:1px solid var(--line);background:var(--card);border-radius:16px;padding:12px;font-size:14px;outline:none;width:100%">
+          <button class="patToggle" id="patToggleBtn" onclick="togglePATVisibility()" type="button">👁</button>
+        </div>
+      </div>
+      <div class="formRow">
+        <label>Gist ID <span style="font-weight:700;color:var(--muted)">(비워두면 첫 저장 시 자동 생성)</span></label>
+        <input type="text" id="gistID" placeholder="a1b2c3d4e5f6..." value="${escapeHtml(gistID)}" style="border:1px solid var(--line);background:var(--card);border-radius:16px;padding:12px;font-size:13px;outline:none;width:100%;font-family:monospace">
+      </div>
+      <button class="btn" onclick="saveGistConfig()">설정 저장</button>
+      ${githubPAT ? `
+      <div class="gistStatus">
+        <div class="gistDot ${lastGistSync ? 'ok' : 'idle'}"></div>
+        <span id="gistSyncTime">${lastGistSync ? '마지막 동기화: ' + lastGistSync.slice(0,16).replace('T',' ') : '아직 동기화 없음'}</span>
+      </div>
+      <div class="row2" style="margin-top:10px">
+        <button class="btn ghost" onclick="syncToGist(true)">📤 수동 백업</button>
+        <button class="btn ghost" onclick="fetchFromGist()">📥 복원</button>
+      </div>` : `<div class="note" style="margin-top:10px">Token 설정 후에는 강의 체크 → 3초 대기 → 자동 저장 사이클이 동작합니다.</div>`}
+    </section>
+    <section class="card"><h2 style="font-size:17px;margin:0 0 10px">로컬 백업·복원</h2><div class="row2"><button class="btn ghost" onclick="downloadBackup()">백업 저장</button><button class="btn ghost" onclick="document.getElementById('restoreFile').click()">복원 불러오기</button></div><input id="restoreFile" type="file" accept="application/json" style="display:none" onchange="restoreBackup(event)"><div class="note" style="margin-top:10px">아이폰 파일 앱에 JSON으로 저장해두면 기기를 바꿔도 복원할 수 있습니다.</div></section>
     <section class="card"><button class="btn danger" onclick="resetAll()">전체 진도 초기화</button><div class="note" style="margin-top:10px">강의를 처음부터 다시 체크하고 싶을 때만 사용하세요.</div></section>
   `;
 }
@@ -422,13 +495,180 @@ function restoreBackup(e) {
   const r=new FileReader(); r.onload=()=>{ try{ state=Object.assign(state, JSON.parse(r.result)); saveState(); renderAll(); toast('백업을 복원했습니다.'); }catch(err){ toast('복원 파일을 확인해 주세요.'); } }; r.readAsText(file);
 }
 function resetAll() { if(!confirm('완료 체크와 계획을 모두 초기화할까요?')) return; state.completed={}; state.notes={}; state.startDate=todayISO(); state.plan=makePlan(state.startDate,false,state); saveState(); renderAll(); toast('처음부터 다시 시작하도록 초기화했습니다.'); }
+function milestoneDate(filterFn) {
+  const ids = new Set(LECTURES.filter(filterFn).map(l => l.id));
+  if (!ids.size) return null;
+  let maxDoneDate = null;
+  let allDone = true;
+  for (const id of ids) {
+    if (isDone(id)) {
+      const d = completedDate(id);
+      if (d && (!maxDoneDate || d > maxDoneDate)) maxDoneDate = d;
+    } else { allDone = false; }
+  }
+  if (allDone) return maxDoneDate;
+  let lastDate = null;
+  const sorted = Object.keys(state.plan).sort();
+  for (const date of sorted) {
+    const planIds = state.plan[date] || [];
+    if (planIds.some(id => ids.has(id) && !isDone(id))) lastDate = date;
+  }
+  return lastDate;
+}
+function renderMilestoneBlock() {
+  const today = todayISO();
+  const startISO = state.startDate;
+  const examISO = state.examDate;
+  const totalSpan = Math.max(1, diffDays(startISO, examISO));
+  function pct(iso) { if(!iso) return null; const p = diffDays(startISO, iso) / totalSpan * 100; return Math.min(97, Math.max(3, p)); }
+  const todayPct = pct(today) || 0;
+  const ms = {
+    b1:   milestoneDate(l => l.course==='기본서'   && l.subject===1),
+    b3:   milestoneDate(l => l.course==='기본서'   && l.subject===3),
+    b4:   milestoneDate(l => l.course==='기본서'   && l.subject===4),
+    bAll: milestoneDate(l => l.course==='기본서'),
+    p1:   milestoneDate(l => l.course==='문제풀이' && l.subject===1),
+    p3:   milestoneDate(l => l.course==='문제풀이' && l.subject===3),
+    p4:   milestoneDate(l => l.course==='문제풀이' && l.subject===4),
+    pAll: milestoneDate(l => l.course==='문제풀이'),
+  };
+  function dateVal(iso) {
+    if (!iso) return '<span class="msNone">미배정</span>';
+    if (iso <= today) return '<span class="msDone">✓ 완료</span>';
+    const d = parseDate(iso); const diff = diffDays(today, iso);
+    return `<span class="msDate">${d.getMonth()+1}/${d.getDate()}</span><span class="msDday">D-${diff}</span>`;
+  }
+  function bannerDate(iso) {
+    if (!iso) return '<span class="msNone">미배정</span>';
+    if (iso <= today) return '<span class="msBannerDone">✓ 완료</span>';
+    const d = parseDate(iso); const diff = diffDays(today, iso);
+    return `<span class="msBannerDate">${d.getMonth()+1}월 ${d.getDate()}일 · D-${diff}</span>`;
+  }
+  const bAllPct = pct(ms.bAll);
+  const pAllPct = pct(ms.pAll);
+  const fillPct = ms.pAll && ms.pAll <= today ? pAllPct : (ms.bAll && ms.bAll <= today ? bAllPct : todayPct);
+  const tlDots = [
+    bAllPct !== null ? `<div class="tlDot ${ms.bAll<=today?'done':'future'}" style="left:${bAllPct}%"></div><div class="tlLbl" style="left:${bAllPct}%">기본서<br>완강</div>` : '',
+    pAllPct !== null ? `<div class="tlDot ${ms.pAll<=today?'done':'future'}" style="left:${pAllPct}%"></div><div class="tlLbl" style="left:${pAllPct}%">문제풀이<br>완강</div>` : '',
+    `<div class="tlDot exam" style="left:97%"></div><div class="tlLbl" style="left:97%">시험일</div>`,
+  ].join('');
+  return `
+    <div class="tlStrip">
+      <div class="tlTrack"></div>
+      <div class="tlFill" style="width:${fillPct}%"></div>
+      <div class="tlToday" style="left:${todayPct}%"></div>
+      <div class="tlLblTop" style="left:${todayPct}%">TODAY</div>
+      ${tlDots}
+    </div>
+    <div class="tlEdgeRow"><span class="tlEdge">${startISO.slice(5).replace('-','/')}</span><span class="tlEdge">${examISO.slice(5).replace('-','/')}</span></div>
+    <div class="msGrid">
+      <div class="msCol">
+        <div class="msColHead">📚 기본서</div>
+        <div class="msRow"><span class="msSubj">1과목</span><div class="msVal">${dateVal(ms.b1)}</div></div>
+        <div class="msRow"><span class="msSubj">3과목</span><div class="msVal">${dateVal(ms.b3)}</div></div>
+        <div class="msRow"><span class="msSubj">4과목</span><div class="msVal">${dateVal(ms.b4)}</div></div>
+      </div>
+      <div class="msCol">
+        <div class="msColHead">📝 문제풀이</div>
+        <div class="msRow"><span class="msSubj">1과목</span><div class="msVal">${dateVal(ms.p1)}</div></div>
+        <div class="msRow"><span class="msSubj">3과목</span><div class="msVal">${dateVal(ms.p3)}</div></div>
+        <div class="msRow"><span class="msSubj">4과목</span><div class="msVal">${dateVal(ms.p4)}</div></div>
+      </div>
+    </div>
+    <div class="msBanner basic"><span class="msBannerName">📚 기본서 완강</span>${bannerDate(ms.bAll)}</div>
+    <div class="msBanner practice"><span class="msBannerName">📝 문제풀이 완강</span>${bannerDate(ms.pAll)}</div>
+  `;
+}
+/* ══ GITHUB GIST AUTO-SYNC ══ */
+function autoSyncGist() {
+  if (!githubPAT) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => syncToGist(false), 3000);
+}
+async function syncToGist(isManual = false) {
+  if (!githubPAT) { if (isManual) toast('GitHub Token을 먼저 설정해주세요.'); return; }
+  if (isManual) toast('☁️ Gist에 저장 중...');
+  const content = JSON.stringify(state, null, 2);
+  const body = { description: 'FRM Planner Backup', public: false, files: { 'frm-planner-backup.json': { content } } };
+  try {
+    let url = 'https://api.github.com/gists';
+    let method = 'POST';
+    if (gistID) { url += '/' + gistID; method = 'PATCH'; }
+    const res = await fetch(url, {
+      method,
+      headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${githubPAT}` },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!gistID) {
+      gistID = data.id;
+      try { localStorage.setItem('frm-gist-id', gistID); } catch(e) {}
+    }
+    lastGistSync = new Date().toISOString();
+    try { localStorage.setItem('frm-gist-sync', lastGistSync); } catch(e) {}
+    if (isManual) { toast('☁️ Gist 백업 완료!'); renderSettings(); }
+    else { document.getElementById('gistSyncTime') && renderGistStatus(); }
+  } catch(e) {
+    console.error('Gist sync error:', e);
+    if (isManual) toast('☁️ 백업 실패 — 토큰을 확인해주세요.');
+  }
+}
+async function fetchFromGist() {
+  if (!githubPAT || !gistID) { toast('Token과 Gist ID가 모두 필요합니다.'); return; }
+  toast('☁️ 클라우드에서 불러오는 중...');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistID}`, {
+      headers: { 'Authorization': `token ${githubPAT}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const file = data.files['frm-planner-backup.json'];
+    if (!file) throw new Error('백업 파일 없음');
+    const parsed = JSON.parse(file.content);
+    if (!confirm('클라우드 데이터로 복원할까요?\n현재 기기 데이터가 덮어씌워집니다.')) return;
+    state = Object.assign(state, parsed);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    lastGistSync = new Date().toISOString();
+    try { localStorage.setItem('frm-gist-sync', lastGistSync); } catch(e) {}
+    renderAll();
+    toast('📥 클라우드 복원 완료!');
+  } catch(e) {
+    console.error('Gist fetch error:', e);
+    toast('복원 실패 — Gist ID 또는 토큰 확인');
+  }
+}
+function saveGistConfig() {
+  const pat = (document.getElementById('gistPAT')?.value || '').trim();
+  const id  = (document.getElementById('gistID')?.value  || '').trim();
+  githubPAT = pat;
+  gistID    = id;
+  try { localStorage.setItem('frm-gist-pat', pat); } catch(e) {}
+  try { localStorage.setItem('frm-gist-id',  id);  } catch(e) {}
+  toast('설정 저장됨');
+  if (pat && !id) syncToGist(true);
+  else renderSettings();
+}
+function togglePATVisibility() {
+  const el = document.getElementById('gistPAT');
+  const btn = document.getElementById('patToggleBtn');
+  if (!el) return;
+  el.type = el.type === 'password' ? 'text' : 'password';
+  btn.textContent = el.type === 'password' ? '👁' : '🙈';
+}
+function renderGistStatus() {
+  const el = document.getElementById('gistSyncTime');
+  if (!el) return;
+  el.textContent = lastGistSync ? '마지막 동기화: ' + lastGistSync.slice(0,16).replace('T',' ') : '아직 동기화 없음';
+}
+/* ══════════════════════════ */
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1800); }
 function switchTab(tab) { currentTab=tab; document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===tab)); updateTabs(); window.scrollTo({top:0,behavior:'smooth'}); }
 function updateTabs() { document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===currentTab)); }
 document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 document.getElementById('themeToggle').addEventListener('click',()=>{ state.theme = state.theme==='dark'?'light':'dark'; saveState(); renderAll(); });
-window.toggleDone=toggleDone; window.rebuildFromToday=rebuildFromToday; window.rebuildFromStart=rebuildFromStart; window.scrollToSettingsRest=scrollToSettingsRest; window.addRestDay=addRestDay; window.removeRestDay=removeRestDay; window.downloadBackup=downloadBackup; window.restoreBackup=restoreBackup; window.resetAll=resetAll;
+window.toggleDone=toggleDone; window.rebuildFromToday=rebuildFromToday; window.rebuildFromStart=rebuildFromStart; window.scrollToSettingsRest=scrollToSettingsRest; window.addRestDay=addRestDay; window.removeRestDay=removeRestDay; window.downloadBackup=downloadBackup; window.restoreBackup=restoreBackup; window.resetAll=resetAll; window.saveGistConfig=saveGistConfig; window.syncToGist=syncToGist; window.fetchFromGist=fetchFromGist; window.togglePATVisibility=togglePATVisibility;
 renderAll();
 </script>
 </body>
