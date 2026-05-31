@@ -186,6 +186,20 @@ textarea{min-height:92px;resize:vertical}
 .patWrap{position:relative}
 .patWrap input[type="password"],.patWrap input[type="text"]{padding-right:46px}
 .patToggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);font-size:16px;padding:4px;line-height:1;cursor:pointer}
+.toggleRow{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:13px;cursor:pointer}
+.toggleLabel{font-size:12px;font-weight:800;line-height:1.4;color:var(--text);flex:1}
+.switch{flex:0 0 auto;width:46px;height:28px;border-radius:999px;background:var(--card2);border:1px solid var(--line);position:relative;transition:.2s}
+.switch i{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--muted);transition:.2s}
+.switch.on{background:var(--primary);border-color:var(--primary)}
+.switch.on i{left:20px;background:#fff}
+.reviewCard{border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.07)}
+.reviewCard .check{border-color:rgba(245,158,11,.45)}
+.reviewCard.done .check{background:var(--warning);color:#3a2a05;border-color:transparent}
+.reviewPill{background:rgba(245,158,11,.16);border-color:rgba(245,158,11,.4);color:var(--warning)}
+.srsCard{border-color:rgba(47,139,255,.45);background:rgba(47,139,255,.08)}
+.srsCard .check{border-color:rgba(47,139,255,.45)}
+.srsCard.done .check{background:#2f8bff;color:#04122b;border-color:transparent}
+.srsPill{background:rgba(47,139,255,.16);border-color:rgba(47,139,255,.4);color:#2f8bff}
 </style>
 </head>
 <body data-theme="dark">
@@ -246,7 +260,7 @@ function formatISO(d) { const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTi
 function addDays(iso,n) { const d=parseDate(iso); d.setDate(d.getDate()+n); return formatISO(d); }
 function diffDays(a,b) { return Math.ceil((parseDate(b)-parseDate(a))/(1000*60*60*24)); }
 function weekdayName(iso) { return ['일','월','화','수','목','금','토'][parseDate(iso).getDay()]; }
-function capForDate(iso) { const day=parseDate(iso).getDay(); return (day===0||day===6) ? 1 : 2; }
+function capForDate(iso, src=state) { const day=parseDate(iso).getDay(); const wd=(src.weekdayCap!=null?src.weekdayCap:2); const we=(src.weekendCap!=null?src.weekendCap:1); return (day===0||day===6) ? we : wd; }
 function minToText(m) { const h=Math.floor(m/60), mm=m%60; return h ? `${h}시간 ${mm}분` : `${mm}분`; }
 function prettyDate(iso) { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${Number(y)}. ${Number(m)}. ${Number(d)}.`; }
 function dateField(id, value, changeCode) { return `<div class="dateBox" onclick="openDateInput('${id}')"><span>${prettyDate(value)}</span><input type="date" id="${id}" value="${value}" onchange="${changeCode}"></div>`; }
@@ -256,9 +270,17 @@ function loadState() {
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e) {}
   const base = {
     startDate: todayISO(), examDate: DEFAULT_EXAM_DATE, receiptStart: DEFAULT_RECEIPT_START, receiptEnd: DEFAULT_RECEIPT_END,
-    completed: {}, restDays: {}, plan: {}, notes: {}, theme: 'dark', createdAt: todayISO()
+    completed: {}, restDays: {}, plan: {}, notes: {}, theme: 'dark', createdAt: todayISO(),
+    weekdayCap: 2, weekendCap: 1, reviewEnabled: true, reviewDone: {},
+    srsEnabled: true, srsIntervals: [7, 30]
   };
   const merged = Object.assign(base, saved || {});
+  if(!merged.reviewDone) merged.reviewDone = {};
+  if(merged.weekdayCap==null) merged.weekdayCap = 2;
+  if(merged.weekendCap==null) merged.weekendCap = 1;
+  if(merged.reviewEnabled==null) merged.reviewEnabled = true;
+  if(merged.srsEnabled==null) merged.srsEnabled = true;
+  if(!Array.isArray(merged.srsIntervals)) merged.srsIntervals = [7, 30];
   if(!merged.plan || Object.keys(merged.plan).length===0) merged.plan = makePlan(merged.startDate, false, merged);
   return merged;
 }
@@ -267,15 +289,78 @@ function lectureById(id) { return LECTURES.find(x=>x.id===id); }
 function isDone(id) { return !!state.completed[id]; }
 function completedDate(id) { return typeof state.completed[id] === 'string' ? state.completed[id] : null; }
 function activeLectures(onlyIncomplete=false) { return LECTURES.filter(l => !onlyIncomplete || !isDone(l.id)); }
+/* ══ REVIEW ITEM HELPERS ══ */
+function unitKey(l) { const base = l.title.replace(/\s*\(\d+\)\s*$/, '').trim(); return `${l.course}|${l.subject}|${base}`; }
+function isReviewId(id) { return typeof id==='string' && (id.startsWith('review::') || id.startsWith('srs::')); }
+function isUnitReviewId(id) { return typeof id==='string' && id.startsWith('review::'); }
+function isSrsId(id) { return typeof id==='string' && id.startsWith('srs::'); }
+function reviewInfo(id) {
+  if (isSrsId(id)) {
+    // srs::<course>|<round>   round = 1-based index into intervals
+    const body = id.slice('srs::'.length);
+    const [course, round] = body.split('|');
+    const lec = LECTURES.filter(l => l.course===course);
+    const mins = lec.reduce((a,l)=>a+l.minutes,0);
+    return { kind:'srs', course, round:Number(round), label:`${course} 전체 ${round}차 회독`, count:lec.length, minutes:mins, lectures:lec };
+  }
+  const key = id.slice('review::'.length);
+  const [course, subject, base] = key.split('|');
+  const lec = LECTURES.filter(l => unitKey(l)===key);
+  const mins = lec.reduce((a,l)=>a+l.minutes,0);
+  return { kind:'unit', key, course, subject:Number(subject), base, label:`${base} 복습`, count:lec.length, minutes:mins, lectures:lec };
+}
+function isReviewDone(id) { return !!(state.reviewDone && state.reviewDone[id]); }
+function reviewDoneDate(id) { return (state.reviewDone && typeof state.reviewDone[id]==='string') ? state.reviewDone[id] : null; }
+function itemDone(id) { return isReviewId(id) ? isReviewDone(id) : isDone(id); }
 function makePlan(startISO, onlyIncomplete=true, sourceState=state) {
-  const queue = LECTURES.filter(l => !onlyIncomplete || !sourceState.completed[l.id]).map(l=>l.id);
+  const reviewEnabled = sourceState.reviewEnabled !== false;
+  const srsEnabled = sourceState.srsEnabled !== false;
+  const intervals = Array.isArray(sourceState.srsIntervals) ? sourceState.srsIntervals : [7,30];
+  const rd = sourceState.reviewDone || {};
+  const lecs = LECTURES.filter(l => !onlyIncomplete || !sourceState.completed[l.id]);
+  const lastOfUnit = {};
+  LECTURES.forEach(l => { lastOfUnit[unitKey(l)] = l.id; });
+  // queue: lectures interleaved with unit-review items
+  const queue = [];
+  lecs.forEach(l => {
+    queue.push({ type:'lec', id:l.id, course:l.course });
+    if (reviewEnabled && lastOfUnit[unitKey(l)] === l.id) {
+      const rid = 'review::' + unitKey(l);
+      if (!(onlyIncomplete && rd[rid])) queue.push({ type:'review', id:rid });
+    }
+  });
+  // place queue into days respecting caps & rest days; remember the date each course's LAST lecture lands
   const plan = {};
+  const courseLastLecDate = {};
   let idx=0;
-  for(let iso=startISO; iso<=sourceState.examDate && idx<queue.length; iso=addDays(iso,1)) {
+  let iso=startISO;
+  for(; iso<=sourceState.examDate && idx<queue.length; iso=addDays(iso,1)) {
     if(sourceState.restDays && sourceState.restDays[iso]) { plan[iso]=[]; continue; }
-    const cap = capForDate(iso);
-    plan[iso] = [];
-    for(let i=0;i<cap && idx<queue.length;i++) plan[iso].push(queue[idx++]);
+    const cap = capForDate(iso, sourceState);
+    if(!plan[iso]) plan[iso]=[];
+    for(let i=0;i<cap && idx<queue.length;i++) {
+      const item=queue[idx++];
+      plan[iso].push(item.id);
+      if(item.type==='lec') courseLastLecDate[item.course] = iso;
+    }
+  }
+  // spaced-repetition (회독) checkpoints: anchored by date offset from each course's completion date
+  if (srsEnabled) {
+    Object.keys(courseLastLecDate).forEach(course => {
+      const base = courseLastLecDate[course];
+      intervals.forEach((days, i) => {
+        const round = i+1;
+        const sid = `srs::${course}|${round}`;
+        if (onlyIncomplete && rd[sid]) return;
+        let target = addDays(base, days);
+        if (target > sourceState.examDate) target = sourceState.examDate;
+        // skip onto next non-rest day if needed
+        let guard=0;
+        while (sourceState.restDays && sourceState.restDays[target] && target < sourceState.examDate && guard++ < 400) target = addDays(target,1);
+        if(!plan[target]) plan[target]=[];
+        plan[target].push(sid);
+      });
+    });
   }
   return plan;
 }
@@ -290,6 +375,12 @@ function rebuildFromStart() {
   saveState(); renderAll(); toast('시작일 기준으로 전체 계획을 다시 만들었습니다.');
 }
 function toggleDone(id) {
+  if (isReviewId(id)) {
+    if (!state.reviewDone) state.reviewDone = {};
+    if (state.reviewDone[id]) delete state.reviewDone[id];
+    else state.reviewDone[id] = todayISO();
+    saveState(); renderAll(); return;
+  }
   if(state.completed[id]) delete state.completed[id];
   else state.completed[id] = todayISO();
   saveState(); renderAll();
@@ -302,7 +393,7 @@ function stats() {
   const pct=Math.round(done/total*100);
   const dday=Math.max(0,diffDays(todayISO(),state.examDate));
   const scheduleDue = Object.entries(state.plan).filter(([d])=>d<=todayISO()).flatMap(([,ids])=>ids).filter(Boolean);
-  const dueIncomplete = scheduleDue.filter(id=>!isDone(id)).length;
+  const dueIncomplete = scheduleDue.filter(id=>!itemDone(id)).length;
   return {total,done,remaining,pct,minutes,dday,dueIncomplete,scheduleDueCount:scheduleDue.length};
 }
 function phaseInfo() {
@@ -327,12 +418,12 @@ function renderAll() {
 }
 function renderHome() {
   const s=stats(); const p=phaseInfo(); const pace=paceText(s); const today=todayISO();
-  const todayIds = (state.plan[today] || []).filter(id=>!isDone(id));
+  const todayIds = (state.plan[today] || []).filter(id=>!itemDone(id));
   const overdueAll = Object.entries(state.plan)
     .filter(([d])=>d<today)
     .sort(([a],[b])=>a.localeCompare(b))
     .flatMap(([,ids])=>ids)
-    .filter(id=>!isDone(id));
+    .filter(id=>!itemDone(id));
   const overdueLimit = 7;
   const overdueShown = showAllOverdue ? overdueAll : overdueAll.slice(0, overdueLimit);
   const hasHiddenOverdue = overdueAll.length > overdueLimit;
@@ -369,6 +460,19 @@ function renderHome() {
   `;
 }
 function lectureCard(id, status='') {
+  if (isReviewId(id)) {
+    const r = reviewInfo(id); const done = isReviewDone(id);
+    const isSrs = r.kind==='srs';
+    const cls = isSrs ? 'srsCard' : 'reviewCard';
+    const pill = isSrs ? `<span class="pill srsPill">🔄 ${r.round}차 회독</span>` : `<span class="pill reviewPill">🔁 복습</span>`;
+    const title = isSrs ? `${r.course} 전체 ${r.round}차 회독` : `${escapeHtml(r.base)} 복습`;
+    const sub = isSrs ? `망각곡선 복습 · ${r.count}강 전체 (${minToText(r.minutes)})` : `단원 마무리 복습 · ${r.count}강 (${minToText(r.minutes)})`;
+    const subjPill = isSrs ? '' : `<span class="pill">${r.subject}과목</span>`;
+    return `<div class="lectureCard ${cls} ${done?'done':''}" onclick="toggleDone('${id}')">
+      <div class="check">${done?'✓':''}</div>
+      <div class="lectureInfo"><div class="meta">${pill}${subjPill}<span class="pill">${r.count}강 분량</span></div><div class="lectureTitle">${title}</div><div class="lectureSub">${sub}</div></div>
+    </div>`;
+  }
   const l=lectureById(id); if(!l) return '';
   const statusLabel = status==='overdue' ? '<span class="pill">밀림</span>' : (status==='today' ? '<span class="pill">오늘</span>' : '');
   return `<div class="lectureCard ${isDone(id)?'done':''}" onclick="toggleDone('${id}')">
@@ -389,7 +493,7 @@ function renderPlan() {
   const today=todayISO();
   const dates=[]; for(let i=0;i<planRange;i++) dates.push(addDays(today,i));
   document.getElementById('plan').innerHTML = `
-    <div class="sectionTitle"><h2>날짜별 계획</h2><span>주중 2강 · 주말 1강</span></div>
+    <div class="sectionTitle"><h2>날짜별 계획</h2><span>주중 ${state.weekdayCap}강 · 주말 ${state.weekendCap}강</span></div>
     <div class="segment"><button class="${planRange===7?'active':''}" onclick="planRange=7;renderPlan()">7일</button><button class="${planRange===14?'active':''}" onclick="planRange=14;renderPlan()">14일</button><button class="${planRange===30?'active':''}" onclick="planRange=30;renderPlan()">30일</button></div>
     <div class="row2"><button class="btn" onclick="rebuildFromToday()">오늘부터 재조정</button><button class="btn ghost" onclick="scrollToSettingsRest()">쉬는 날 설정</button></div>
     <div class="note" style="margin-top:10px">완료하지 않은 강의만 오늘부터 다시 배정할 수 있습니다. 시험 전까지 남은 날짜 안에 배치됩니다.</div>
@@ -399,11 +503,24 @@ function renderPlan() {
 function planDay(iso) {
   const ids=state.plan[iso] || [];
   const isRest=!!state.restDays[iso];
-  return `<div class="planDay ${isRest?'dayOff':''}"><div class="planHead"><div class="planDate">${iso} (${weekdayName(iso)})</div><div class="planCount">${isRest?'쉬는 날':ids.length+'강'}</div></div>
+  const lecN=ids.filter(id=>!isReviewId(id)).length;
+  const revN=ids.filter(isReviewId).length;
+  const countLabel = isRest ? '쉬는 날' : (revN ? `${lecN}강 · 복습 ${revN}` : `${lecN}강`);
+  return `<div class="planDay ${isRest?'dayOff':''}"><div class="planHead"><div class="planDate">${iso} (${weekdayName(iso)})</div><div class="planCount">${countLabel}</div></div>
     ${isRest ? '<div class="empty">휴식일로 설정됨</div>' : (ids.length ? ids.map(id=>miniLecture(id)).join('') : '<div class="empty">배정된 강의 없음</div>')}
   </div>`;
 }
-function miniLecture(id) { const l=lectureById(id); return `<div class="miniLecture" onclick="toggleDone('${id}')"><div class="check" style="width:24px;height:24px;border-radius:8px;font-size:12px">${isDone(id)?'✓':''}</div><div class="miniTitle">${l.title}<div class="miniMeta">${l.course} · ${l.subject}과목 · ${l.minutes}분</div></div></div>`; }
+function miniLecture(id) {
+  if (isReviewId(id)) {
+    const r=reviewInfo(id); const done=isReviewDone(id);
+    const isSrs=r.kind==='srs';
+    const icon=isSrs?'🔄':'🔁';
+    const title=isSrs?`${r.course} ${r.round}차 회독`:`${escapeHtml(r.base)} 복습`;
+    const meta=isSrs?`회독 · ${r.count}강 전체`:`복습 · ${r.subject}과목 · ${r.count}강`;
+    return `<div class="miniLecture" onclick="toggleDone('${id}')"><div class="check" style="width:24px;height:24px;border-radius:8px;font-size:12px">${done?'✓':''}</div><div class="miniTitle">${icon} ${title}<div class="miniMeta">${meta}</div></div></div>`;
+  }
+  const l=lectureById(id); return `<div class="miniLecture" onclick="toggleDone('${id}')"><div class="check" style="width:24px;height:24px;border-radius:8px;font-size:12px">${isDone(id)?'✓':''}</div><div class="miniTitle">${l.title}<div class="miniMeta">${l.course} · ${l.subject}과목 · ${l.minutes}분</div></div></div>`;
+}
 function renderLectures() {
   const filters=[['all','전체'],['basic','기본서'],['practice','문제풀이'],['s1','1과목'],['s3','3과목'],['s4','4과목'],['done','완료'],['todo','미완료']];
   let list=LECTURES.slice();
@@ -452,7 +569,35 @@ function renderSettings() {
       <div class="formRow"><label>시작일</label>${dateField('startDateInput', state.startDate, 'state.startDate=this.value;rebuildFromStart()')}</div>
       <div class="formRow"><label>시험일</label>${dateField('examDateInput', state.examDate, 'state.examDate=this.value;rebuildFromToday()')}</div>
       <div class="row2"><div class="formRow"><label>접수 시작</label>${dateField('receiptStartInput', state.receiptStart, 'state.receiptStart=this.value;saveState();renderAll()')}</div><div class="formRow"><label>접수 종료</label>${dateField('receiptEndInput', state.receiptEnd, 'state.receiptEnd=this.value;saveState();renderAll()')}</div></div>
-      <div class="note">현재 계획은 평일 2강, 토·일 1강 기준입니다. 2과목 강의는 면제 전제로 제외되어 있습니다.</div>
+      <div class="row2">
+        <div class="formRow"><label>평일 강의 수 (월~금)</label>
+          <select onchange="state.weekdayCap=Number(this.value);rebuildFromToday()">${[0,1,2,3,4,5].map(n=>`<option value="${n}" ${state.weekdayCap===n?'selected':''}>${n}강</option>`).join('')}</select>
+        </div>
+        <div class="formRow"><label>주말 강의 수 (토·일)</label>
+          <select onchange="state.weekendCap=Number(this.value);rebuildFromToday()">${[0,1,2,3,4,5].map(n=>`<option value="${n}" ${state.weekendCap===n?'selected':''}>${n}강</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="formRow" style="margin-top:4px">
+        <label>단원 복습 세트</label>
+        <div class="toggleRow" onclick="state.reviewEnabled=!(state.reviewEnabled!==false);rebuildFromStart()">
+          <span class="toggleLabel">한 단원(예: 채권분석)이 끝나면 복습을 일정에 자동 추가</span>
+          <span class="switch ${state.reviewEnabled!==false?'on':''}"><i></i></span>
+        </div>
+      </div>
+      <div class="formRow" style="margin-top:4px">
+        <label>회독 복습 (망각곡선 · 간격 반복)</label>
+        <div class="toggleRow" onclick="state.srsEnabled=!(state.srsEnabled!==false);rebuildFromStart()">
+          <span class="toggleLabel">과목 완강 후 일정 간격으로 전체 회독을 일정에 자동 추가</span>
+          <span class="switch ${state.srsEnabled!==false?'on':''}"><i></i></span>
+        </div>
+      </div>
+      ${state.srsEnabled!==false ? `
+      <div class="formRow">
+        <label>회독 간격 (완강일 기준, 일 단위 · 쉼표로 구분)</label>
+        <input type="text" inputmode="numeric" id="srsIntervalsInput" value="${(state.srsIntervals||[7,30]).join(', ')}" placeholder="7, 30" onchange="saveSrsIntervals(this.value)" style="border:1px solid var(--line);background:var(--card);border-radius:16px;padding:12px;font-size:14px;outline:none;width:100%">
+        <div class="note" style="margin-top:6px">예: <b>7, 30</b> → 기본서·문제풀이 각 완강일로부터 7일 뒤·30일 뒤에 전체 회독 일정이 잡힙니다.</div>
+      </div>` : ''}
+      <div class="note">현재 계획은 <b>평일 ${state.weekdayCap}강, 주말 ${state.weekendCap}강</b> 기준입니다. 단원 복습 <b>${state.reviewEnabled!==false?'켜짐':'꺼짐'}</b> · 회독 복습 <b>${state.srsEnabled!==false?'켜짐':'꺼짐'}</b>. 2과목 강의는 면제 전제로 제외되어 있습니다.</div>
     </section>
     <section class="card" id="restSection"><h2 style="font-size:17px;margin:0 0 10px">휴가·쉬는 날</h2><div class="row2">${dateField('restDate', todayISO(), '')}<button class="btn" onclick="addRestDay()">추가</button></div><div class="note" style="margin:10px 0">쉬는 날을 추가하면 오늘부터 미완료 강의를 다시 배정합니다.</div><div class="toolbar">${restList.length ? restList.map(d=>`<button class="chip" onclick="removeRestDay('${d}')">${d} ✕</button>`).join('') : '<span class="note">등록된 쉬는 날 없음</span>'}</div></section>
     <section class="card">
@@ -484,6 +629,11 @@ function renderSettings() {
     <section class="card"><button class="btn danger" onclick="resetAll()">전체 진도 초기화</button><div class="note" style="margin-top:10px">강의를 처음부터 다시 체크하고 싶을 때만 사용하세요.</div></section>
   `;
 }
+function saveSrsIntervals(val) {
+  const arr = String(val).split(',').map(s=>parseInt(s.trim(),10)).filter(n=>Number.isFinite(n) && n>0);
+  state.srsIntervals = arr.length ? Array.from(new Set(arr)).sort((a,b)=>a-b) : [7,30];
+  rebuildFromStart();
+}
 function addRestDay() { const d=document.getElementById('restDate').value; if(!d) return; state.restDays[d]=true; rebuildFromToday(); }
 function removeRestDay(d) { delete state.restDays[d]; rebuildFromToday(); }
 function scrollToSettingsRest() { switchTab('settings'); setTimeout(()=>document.getElementById('restSection')?.scrollIntoView({behavior:'smooth',block:'start'}),80); }
@@ -495,7 +645,7 @@ function restoreBackup(e) {
   const file=e.target.files[0]; if(!file) return;
   const r=new FileReader(); r.onload=()=>{ try{ state=Object.assign(state, JSON.parse(r.result)); saveState(); renderAll(); toast('백업을 복원했습니다.'); }catch(err){ toast('복원 파일을 확인해 주세요.'); } }; r.readAsText(file);
 }
-function resetAll() { if(!confirm('완료 체크와 계획을 모두 초기화할까요?')) return; state.completed={}; state.notes={}; state.startDate=todayISO(); state.plan=makePlan(state.startDate,false,state); saveState(); renderAll(); toast('처음부터 다시 시작하도록 초기화했습니다.'); }
+function resetAll() { if(!confirm('완료 체크와 계획을 모두 초기화할까요?')) return; state.completed={}; state.notes={}; state.reviewDone={}; state.startDate=todayISO(); state.plan=makePlan(state.startDate,false,state); saveState(); renderAll(); toast('처음부터 다시 시작하도록 초기화했습니다.'); }
 function milestoneDate(filterFn) {
   const ids = new Set(LECTURES.filter(filterFn).map(l => l.id));
   if (!ids.size) return null;
@@ -669,7 +819,7 @@ function switchTab(tab) { currentTab=tab; document.querySelectorAll('.screen').f
 function updateTabs() { document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===currentTab)); }
 document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 document.getElementById('themeToggle').addEventListener('click',()=>{ state.theme = state.theme==='dark'?'light':'dark'; saveState(); renderAll(); });
-window.toggleDone=toggleDone; window.rebuildFromToday=rebuildFromToday; window.rebuildFromStart=rebuildFromStart; window.scrollToSettingsRest=scrollToSettingsRest; window.addRestDay=addRestDay; window.removeRestDay=removeRestDay; window.downloadBackup=downloadBackup; window.restoreBackup=restoreBackup; window.resetAll=resetAll; window.saveGistConfig=saveGistConfig; window.syncToGist=syncToGist; window.fetchFromGist=fetchFromGist; window.togglePATVisibility=togglePATVisibility;
+window.toggleDone=toggleDone; window.rebuildFromToday=rebuildFromToday; window.rebuildFromStart=rebuildFromStart; window.scrollToSettingsRest=scrollToSettingsRest; window.addRestDay=addRestDay; window.removeRestDay=removeRestDay; window.downloadBackup=downloadBackup; window.restoreBackup=restoreBackup; window.resetAll=resetAll; window.saveGistConfig=saveGistConfig; window.syncToGist=syncToGist; window.fetchFromGist=fetchFromGist; window.togglePATVisibility=togglePATVisibility; window.saveSrsIntervals=saveSrsIntervals;
 renderAll();
 </script>
 </body>
